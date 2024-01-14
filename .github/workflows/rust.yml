@@ -41,7 +41,7 @@ jobs:
 
       - name: Get MSRV
         id: msrv
-        run: echo "msrv=$(cargo metadata --no-deps --format-version=1 | jq -r ".packages[] | select(.name==\"jbonsai\") | .rust_version")" >> $GITHUB_OUTPUT
+        run: echo "msrv=$(cargo metadata --no-deps --format-version=1 | jq -r ".packages[] | select(.name==\"jlabel\") | .rust_version")" >> $GITHUB_OUTPUT
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@439cf607258077187679211f12aa6f19af4a0af7 # master
