@@ -1,3 +1,11 @@
+use crate::{
+    position::{
+        BooleanPosition, CategoryPosition, PhonePosition, SignedRangePosition,
+        UnsignedRangePosition,
+    },
+    question::AllQuestion,
+};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Label {
     pub phoneme: Phoneme,
@@ -12,6 +20,174 @@ pub struct Label {
     pub breath_group_curr: Option<BreathGroupCurrent>,
     pub breath_group_next: Option<BreathGroupPrevNext>,
     pub utterance: Utterance,
+}
+
+impl Label {
+    pub fn satisfies(&self, question: &AllQuestion) -> bool {
+        use AllQuestion::*;
+        match question {
+            Phone(question) => {
+                use PhonePosition::*;
+                match question.position {
+                    P1 => question.test(&self.phoneme.p1),
+                    P2 => question.test(&self.phoneme.p2),
+                    P3 => question.test(&self.phoneme.c),
+                    P4 => question.test(&self.phoneme.n1),
+                    P5 => question.test(&self.phoneme.n2),
+                }
+            }
+            SignedRange(question) => {
+                use SignedRangePosition::*;
+                match question.position {
+                    A1 => question.test(&self.mora.as_ref().map(|m| m.relative_accent_position)),
+                }
+            }
+            UnsignedRange(question) => {
+                use UnsignedRangePosition::*;
+                match question.position {
+                    A2 => question.test(&self.mora.as_ref().map(|m| m.position_forward)),
+                    A3 => question.test(&self.mora.as_ref().map(|m| m.position_backward)),
+                    E1 => question.test(&self.accent_phrase_prev.as_ref().map(|a| a.mora_count)),
+                    E2 => {
+                        question.test(&self.accent_phrase_prev.as_ref().map(|a| a.accent_position))
+                    }
+                    F1 => question.test(&self.accent_phrase_curr.as_ref().map(|a| a.mora_count)),
+                    F2 => {
+                        question.test(&self.accent_phrase_curr.as_ref().map(|a| a.accent_position))
+                    }
+                    F5 => question.test(
+                        &self
+                            .accent_phrase_curr
+                            .as_ref()
+                            .map(|a| a.accent_phrase_position_forward),
+                    ),
+                    F6 => question.test(
+                        &self
+                            .accent_phrase_curr
+                            .as_ref()
+                            .map(|a| a.accent_phrase_position_backward),
+                    ),
+                    F7 => question.test(
+                        &self
+                            .accent_phrase_curr
+                            .as_ref()
+                            .map(|a| a.mora_position_forward),
+                    ),
+                    F8 => question.test(
+                        &self
+                            .accent_phrase_curr
+                            .as_ref()
+                            .map(|a| a.mora_position_backward),
+                    ),
+                    G1 => question.test(&self.accent_phrase_next.as_ref().map(|a| a.mora_count)),
+                    G2 => {
+                        question.test(&self.accent_phrase_next.as_ref().map(|a| a.accent_position))
+                    }
+                    H1 => question.test(
+                        &self
+                            .breath_group_prev
+                            .as_ref()
+                            .map(|b| b.accent_phrase_count),
+                    ),
+                    H2 => question.test(&self.breath_group_prev.as_ref().map(|b| b.mora_count)),
+                    I1 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.accent_phrase_count),
+                    ),
+                    I2 => question.test(&self.breath_group_curr.as_ref().map(|b| b.mora_count)),
+                    I3 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.breath_group_position_forward),
+                    ),
+                    I4 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.breath_group_position_backward),
+                    ),
+                    I5 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.accent_phrase_position_forward),
+                    ),
+                    I6 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.accent_phrase_position_backward),
+                    ),
+                    I7 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.mora_position_forward),
+                    ),
+                    I8 => question.test(
+                        &self
+                            .breath_group_curr
+                            .as_ref()
+                            .map(|b| b.mora_position_backward),
+                    ),
+                    J1 => question.test(
+                        &self
+                            .breath_group_next
+                            .as_ref()
+                            .map(|b| b.accent_phrase_count),
+                    ),
+                    J2 => question.test(&self.breath_group_next.as_ref().map(|b| b.mora_count)),
+                    K1 => question.test(&Some(self.utterance.breath_group_count)),
+                    K2 => question.test(&Some(self.utterance.accent_phrase_count)),
+                    K3 => question.test(&Some(self.utterance.mora_count)),
+                }
+            }
+            Boolean(question) => {
+                use BooleanPosition::*;
+                match question.position {
+                    E3 => {
+                        question.test(&self.accent_phrase_prev.as_ref().map(|a| a.is_interrogative))
+                    }
+                    E5 => question.test(
+                        &self
+                            .accent_phrase_prev
+                            .as_ref()
+                            .and_then(|a| a.is_pause_insertion),
+                    ),
+                    F3 => {
+                        question.test(&self.accent_phrase_curr.as_ref().map(|a| a.is_interrogative))
+                    }
+                    G3 => {
+                        question.test(&self.accent_phrase_next.as_ref().map(|a| a.is_interrogative))
+                    }
+                    G5 => question.test(
+                        &self
+                            .accent_phrase_next
+                            .as_ref()
+                            .and_then(|a| a.is_pause_insertion),
+                    ),
+                }
+            }
+            Category(question) => {
+                use CategoryPosition::*;
+                match question.position {
+                    B1 => question.test(&self.word_prev.as_ref().and_then(|w| w.pos)),
+                    B2 => question.test(&self.word_prev.as_ref().and_then(|w| w.ctype)),
+                    B3 => question.test(&self.word_prev.as_ref().and_then(|w| w.cform)),
+                    C1 => question.test(&self.word_curr.as_ref().and_then(|w| w.pos)),
+                    C2 => question.test(&self.word_curr.as_ref().and_then(|w| w.ctype)),
+                    C3 => question.test(&self.word_curr.as_ref().and_then(|w| w.cform)),
+                    D1 => question.test(&self.word_next.as_ref().and_then(|w| w.pos)),
+                    D2 => question.test(&self.word_next.as_ref().and_then(|w| w.ctype)),
+                    D3 => question.test(&self.word_next.as_ref().and_then(|w| w.cform)),
+                }
+            }
+            Undefined(_) => true,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
