@@ -1,3 +1,18 @@
+pub struct Label {
+    pub phoneme: Phoneme,
+    pub mora: Option<Mora>,
+    pub word_prev: Option<Word>,
+    pub word_curr: Option<Word>,
+    pub word_next: Option<Word>,
+    pub accent_phrase_prev: Option<AccentPhrasePrevNext>,
+    pub accent_phrase_curr: Option<AccentPhraseCurrent>,
+    pub accent_phrase_next: Option<AccentPhrasePrevNext>,
+    pub breath_group_prev: Option<BreathGroupPrevNext>,
+    pub breath_group_curr: Option<BreathGroupCurrent>,
+    pub breath_group_next: Option<BreathGroupPrevNext>,
+    pub utterance: Utterance,
+}
+
 pub struct Phoneme {
     pub p2: String,
     pub p1: String,
