@@ -31,11 +31,11 @@ pub struct Mora {
 }
 
 pub struct Word {
-    /// pos (part-of-speech) of the previous word
+    /// pos (part-of-speech) of the word
     pub pos: Option<u8>,
-    /// conjugation type of the previous word
+    /// conjugation type of the word
     pub ctype: Option<u8>,
-    /// inflected forms of the previous word
+    /// inflected forms of the word
     pub cform: Option<u8>,
 }
 
