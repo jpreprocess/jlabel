@@ -36,8 +36,10 @@ fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
         range.push_str(&chars.collect::<String>());
     } else {
         range.push_str(&chars.collect::<String>());
-        suffix.push(last);
+        range.push(last);
     }
+
+    suffix = suffix.chars().rev().collect();
 
     Some((prefix, range, suffix))
 }
