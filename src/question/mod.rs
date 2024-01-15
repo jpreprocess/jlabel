@@ -1,4 +1,6 @@
-use crate::position::{
+pub mod position;
+
+use position::{
     position, AllPosition, BooleanPosition, CategoryPosition, PhonePosition, Position,
     SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
 };

@@ -1,5 +1,5 @@
 use crate::{
-    position::{
+    question::position::{
         BooleanPosition, CategoryPosition, PhonePosition, SignedRangePosition,
         UnsignedRangePosition,
     },
