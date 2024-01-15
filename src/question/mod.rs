@@ -49,7 +49,12 @@ macro_rules! question_arm {
         if $triplets.len() == 1 && $triplets[0].1 == "xx" {
             Some(AllQuestion::$name(Question::new_xx($position)))
         } else {
-            let range = $position.range(&$triplets.iter().map(|(_, r, _)| r).collect::<Vec<&String>>());
+            let range = $position.range(
+                &$triplets
+                    .iter()
+                    .map(|(_, r, _)| r)
+                    .collect::<Vec<&String>>(),
+            );
             Some(AllQuestion::$name(Question::new($position, range)))
         }
     };
@@ -161,7 +166,7 @@ mod tests {
             question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]),
             Some(AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
-                range: Some(-128..-9)
+                range: Some(-99..-8)
             }))
         );
     }

@@ -125,51 +125,35 @@ impl Position for SignedRangePosition {
     type Range = Range<i8>;
 
     fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let first = ranges.first()?;
-        if ranges.len() == 1 {
-            first.parse::<i8>().ok().map(|i| i..i + 1)
-        } else {
-            if first != &"-??" {
-                return None;
-            }
-
-            let mut range: Range<i8> = -128..-10;
-            for r in ranges {
-                if r.ends_with('?') {
-                    let (from, to) = match r.chars().next()? {
-                        '-' => {
-                            let from = r[1..].replace('?', "0").parse::<i8>().ok()?;
-                            let to = r[1..].replace('?', "9").parse::<i8>().ok()?;
-                            (from, to)
-                        }
-                        _ => {
-                            let from = r.replace('?', "0").parse::<i8>().ok()?;
-                            let to = r.replace('?', "9").parse::<i8>().ok()?;
-                            (from, to)
-                        }
-                    };
-                    if from == range.end {
-                        range = range.start..to + 1;
-                    } else {
-                        return None;
-                    }
-                } else {
-                    let i = r.parse::<i8>().ok()?;
-                    if i == range.end {
-                        range = range.start..i + 1;
-                    } else {
-                        return None;
-                    }
-                }
-            }
-
-            Some(range)
+        let mut range = range_i8(ranges.first()?)?;
+        for r in ranges[1..].iter() {
+            let r = range_i8(r)?;
+            extend_range(&mut range, r)?;
         }
+        Some(range)
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
+}
+
+fn range_i8(s: &str) -> Option<Range<i8>> {
+    let range = match s {
+        "-??" => -99..-9,
+        "-?" => -9..0,
+        "?" => 0..9,
+        s if s.ends_with('?') => {
+            let d = s[..s.len() - 1].parse::<i8>().ok()?;
+            debug_assert!(d >= 0);
+            d * 10..(d + 1) * 10
+        }
+        s => {
+            let d = s.parse::<i8>().ok()?;
+            d..d + 1
+        }
+    };
+    Some(range)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -215,40 +199,44 @@ impl Position for UnsignedRangePosition {
     type Range = Range<u8>;
 
     fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let first = ranges.first()?;
-        if ranges.len() == 1 {
-            first.parse::<u8>().ok().map(|i| i..i + 1)
-        } else {
-            if first != &"???" {
-                return None;
-            }
-
-            let mut range: Range<u8> = 0..10;
-            for r in ranges {
-                if r.ends_with('?') {
-                    let from = r[1..].replace('?', "0").parse::<u8>().ok()?;
-                    let to = r[1..].replace('?', "9").parse::<u8>().ok()?;
-                    if from == range.end {
-                        range = range.start..to + 1;
-                    } else {
-                        return None;
-                    }
-                } else {
-                    let i = r.parse::<u8>().ok()?;
-                    if i == range.end {
-                        range = range.start..i + 1;
-                    } else {
-                        return None;
-                    }
-                }
-            }
-
-            Some(range)
+        let mut range = range_u8(ranges.first()?)?;
+        for r in ranges[1..].iter() {
+            let r = range_u8(r)?;
+            extend_range(&mut range, r)?;
         }
+        Some(range)
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
+    }
+}
+
+fn range_u8(s: &str) -> Option<Range<u8>> {
+    let range = match s {
+        "?" => 0..9,
+        s if s.ends_with('?') => {
+            let d = s[..s.len() - 1].parse::<u8>().ok()?;
+            d * 10..(d + 1) * 10
+        }
+        s => {
+            let d = s.parse::<u8>().ok()?;
+            d..d + 1
+        }
+    };
+    Some(range)
+}
+
+fn extend_range<Idx>(target: &mut Range<Idx>, Range { start, end }: Range<Idx>) -> Option<()>
+where
+    Idx: Eq,
+{
+    let ok = target.end == start;
+    if ok {
+        target.end = end;
+        Some(())
+    } else {
+        None
     }
 }
 
