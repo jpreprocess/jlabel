@@ -53,7 +53,7 @@ macro_rules! question_arm {
     };
 }
 
-pub fn question(patterns: &Vec<String>) -> Option<AllQuestion> {
+pub fn question(patterns: &[String]) -> Option<AllQuestion> {
     let mut triplets = Vec::new();
     for pattern in patterns {
         triplets.push(split_pattern(pattern)?);
