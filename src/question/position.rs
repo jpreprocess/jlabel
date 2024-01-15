@@ -1,5 +1,7 @@
 use std::ops::Range;
 
+use super::ParseError;
+
 pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
     use AllPosition::*;
     use BooleanPosition::*;
@@ -89,7 +91,7 @@ pub trait Position {
     type Target;
     type Range;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range>;
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError>;
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
@@ -106,8 +108,8 @@ impl Position for PhonePosition {
     type Target = String;
     type Range = Vec<String>;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        Some(ranges.iter().map(|s| s.to_string()).collect())
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+        Ok(ranges.iter().map(|s| s.to_string()).collect())
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -124,13 +126,14 @@ impl Position for SignedRangePosition {
     type Target = i8;
     type Range = Range<i8>;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let mut range = range_i8(ranges.first()?)?;
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+        let first = ranges.first().ok_or(ParseError::Empty)?;
+        let mut range = range_i8(first)?;
         for r in ranges[1..].iter() {
             let r = range_i8(r)?;
             extend_range(&mut range, r)?;
         }
-        Some(range)
+        Ok(range)
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -138,22 +141,24 @@ impl Position for SignedRangePosition {
     }
 }
 
-fn range_i8(s: &str) -> Option<Range<i8>> {
+fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
     let range = match s {
         "-??" => -99..-9,
         "-?" => -9..0,
         "?" => 0..9,
         s if s.ends_with('?') => {
-            let d = s[..s.len() - 1].parse::<i8>().ok()?;
+            let d = s[..s.len() - 1]
+                .parse::<i8>()
+                .map_err(ParseError::FailWildcard)?;
             debug_assert!(d >= 0);
             d * 10..(d + 1) * 10
         }
         s => {
-            let d = s.parse::<i8>().ok()?;
+            let d = s.parse::<i8>().map_err(ParseError::FailLiteral)?;
             d..d + 1
         }
     };
-    Some(range)
+    Ok(range)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -198,13 +203,14 @@ impl Position for UnsignedRangePosition {
     type Target = u8;
     type Range = Range<u8>;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let mut range = range_u8(ranges.first()?)?;
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+        let first = ranges.first().ok_or(ParseError::Empty)?;
+        let mut range = range_u8(first)?;
         for r in ranges[1..].iter() {
             let r = range_u8(r)?;
             extend_range(&mut range, r)?;
         }
-        Some(range)
+        Ok(range)
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -212,31 +218,36 @@ impl Position for UnsignedRangePosition {
     }
 }
 
-fn range_u8(s: &str) -> Option<Range<u8>> {
+fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
     let range = match s {
         "?" => 0..9,
         s if s.ends_with('?') => {
-            let d = s[..s.len() - 1].parse::<u8>().ok()?;
+            let d = s[..s.len() - 1]
+                .parse::<u8>()
+                .map_err(ParseError::FailWildcard)?;
             d * 10..(d + 1) * 10
         }
         s => {
-            let d = s.parse::<u8>().ok()?;
+            let d = s.parse::<u8>().map_err(ParseError::FailLiteral)?;
             d..d + 1
         }
     };
-    Some(range)
+    Ok(range)
 }
 
-fn extend_range<Idx>(target: &mut Range<Idx>, Range { start, end }: Range<Idx>) -> Option<()>
+fn extend_range<Idx>(
+    target: &mut Range<Idx>,
+    Range { start, end }: Range<Idx>,
+) -> Result<(), ParseError>
 where
     Idx: Eq,
 {
     let ok = target.end == start;
     if ok {
         target.end = end;
-        Some(())
+        Ok(())
     } else {
-        None
+        Err(ParseError::IncontinuousRange)
     }
 }
 
@@ -255,12 +266,12 @@ impl Position for BooleanPosition {
     type Target = bool;
     type Range = bool;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let first = ranges.first()?;
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+        let first = ranges.first().ok_or(ParseError::Empty)?;
         match first.as_str() {
-            "0" => Some(false),
-            "1" => Some(true),
-            _ => None,
+            "0" => Ok(false),
+            "1" => Ok(true),
+            _ => Err(ParseError::InvalidBoolean(first.to_string())),
         }
     }
 
@@ -286,13 +297,11 @@ impl Position for CategoryPosition {
     type Target = u8;
     type Range = Vec<u8>;
 
-    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
-        let mut range = Vec::new();
-        for r in ranges {
-            let i = r.parse::<u8>().ok()?;
-            range.push(i);
-        }
-        Some(range)
+    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+        ranges
+            .into_iter()
+            .map(|s| s.parse::<u8>().map_err(ParseError::FailLiteral))
+            .collect()
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -311,8 +320,8 @@ impl Position for UndefinedPotision {
     type Target = ();
     type Range = ();
 
-    fn range(&self, _: &[&String]) -> Option<Self::Range> {
-        Some(())
+    fn range(&self, _: &[&String]) -> Result<Self::Range, ParseError> {
+        Ok(())
     }
 
     fn test(&self, _: &Self::Range, _: &Self::Target) -> bool {

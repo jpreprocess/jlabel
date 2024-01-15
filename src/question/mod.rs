@@ -1,9 +1,31 @@
 pub mod position;
 
+use std::num::ParseIntError;
+
 use position::{
     position, AllPosition, BooleanPosition, CategoryPosition, PhonePosition, Position,
     SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
 };
+
+#[derive(Debug, Clone, thiserror::Error)]
+pub enum ParseError {
+    #[error("Failed splitting")]
+    FailSplitting,
+    #[error("Position mismatch")]
+    PositionMismatch,
+    #[error("Invalid position")]
+    InvalidPosition,
+    #[error("Empty patterns or range")]
+    Empty,
+    #[error("Incontinuous range")]
+    IncontinuousRange,
+    #[error("Failed wildcard: {0}")]
+    FailWildcard(ParseIntError),
+    #[error("Failed literal: {0}")]
+    FailLiteral(ParseIntError),
+    #[error("Invalid boolean: {0}")]
+    InvalidBoolean(String),
+}
 
 fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
     let mut chars = pattern.chars();
@@ -47,34 +69,34 @@ fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
 macro_rules! question_arm {
     ($name:ident, $position:expr, $triplets:expr) => {
         if $triplets.len() == 1 && $triplets[0].1 == "xx" {
-            Some(AllQuestion::$name(Question::new_xx($position)))
+            Ok(AllQuestion::$name(Question::new_xx($position)))
         } else {
             let range = $position.range(
                 &$triplets
                     .iter()
                     .map(|(_, r, _)| r)
                     .collect::<Vec<&String>>(),
-            );
-            Some(AllQuestion::$name(Question::new($position, range)))
+            )?;
+            Ok(AllQuestion::$name(Question::new($position, range)))
         }
     };
 }
 
-pub fn question(patterns: &[String]) -> Option<AllQuestion> {
+pub fn question(patterns: &[String]) -> Result<AllQuestion, ParseError> {
     let mut triplets = Vec::new();
     for pattern in patterns {
-        triplets.push(split_pattern(pattern)?);
+        triplets.push(split_pattern(pattern).ok_or(ParseError::FailSplitting)?);
     }
 
-    let (prefix, _, suffix) = triplets.first()?;
+    let (prefix, _, suffix) = triplets.first().ok_or(ParseError::Empty)?;
     if !triplets
         .iter()
         .all(|(pre, _, post)| pre == prefix && post == suffix)
     {
-        return None;
+        return Err(ParseError::PositionMismatch);
     }
 
-    let position = position(prefix, suffix)?;
+    let position = position(prefix, suffix).ok_or(ParseError::InvalidPosition)?;
 
     use AllPosition::*;
     match position {
@@ -104,8 +126,11 @@ pub struct Question<P: Position> {
 }
 
 impl<P: Position> Question<P> {
-    pub fn new(position: P, range: Option<P::Range>) -> Self {
-        Self { position, range }
+    pub fn new(position: P, range: P::Range) -> Self {
+        Self {
+            position,
+            range: Some(range),
+        }
     }
 
     pub fn new_xx(position: P) -> Self {
@@ -156,18 +181,18 @@ mod tests {
     #[test]
     fn parse_question() {
         assert_eq!(
-            question(&["a^*".to_string(), "A^*".to_string()]),
-            Some(AllQuestion::Phone(Question {
+            question(&["a^*".to_string(), "A^*".to_string()]).unwrap(),
+            AllQuestion::Phone(Question {
                 position: PhonePosition::P1,
                 range: Some(vec!["a".to_string(), "A".to_string()])
-            }))
+            })
         );
         assert_eq!(
-            question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]),
-            Some(AllQuestion::SignedRange(Question {
+            question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]).unwrap(),
+            AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
                 range: Some(-99..-8)
-            }))
+            })
         );
     }
 }
