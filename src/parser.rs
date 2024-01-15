@@ -39,6 +39,14 @@ impl<'a> LabelTokenizer<'a> {
         }
     }
 
+    fn string_or_xx(input: &'a str) -> Option<String> {
+        if input == "xx" {
+            None
+        } else {
+            Some(input.to_string())
+        }
+    }
+
     fn parse_or_xx<T: FromStr>(input: &'a str) -> Result<Option<T>, T::Err> {
         if input == "xx" {
             Ok(None)
@@ -66,24 +74,17 @@ impl<'a> LabelTokenizer<'a> {
 
     /// `p1ˆp2-p3+p4=p5`
     fn p(&mut self) -> Result<Phoneme, ParseError> {
-        let p1 = self.until("^")?;
-        let p2 = self.until("-")?;
-        let p3 = self.until("+")?;
-        let p4 = self.until("=")?;
-        let p5 = self.until("/A:")?;
-        // Ok(Phoneme {
-        //     p2: Self::parse_or_xx(p1)?,
-        //     p1: Self::parse_or_xx(p2)?,
-        //     c: Self::parse_or_xx(p3)?.ok_or(ParseError::ShouldBeUndefined)?,
-        //     n1: Self::parse_or_xx(p4)?,
-        //     n2: Self::parse_or_xx(p5)?,
-        // })
+        let p1 = Self::string_or_xx(self.until("^")?);
+        let p2 = Self::string_or_xx(self.until("-")?);
+        let p3 = Self::string_or_xx(self.until("+")?);
+        let p4 = Self::string_or_xx(self.until("=")?);
+        let p5 = Self::string_or_xx(self.until("/A:")?);
         Ok(Phoneme {
-            p2: p1.to_string(),
-            p1: p2.to_string(),
-            c: p3.to_string(),
-            n1: p4.to_string(),
-            n2: p5.to_string(),
+            p2: p1,
+            p1: p2,
+            c: p3,
+            n1: p4,
+            n2: p5,
         })
     }
 
