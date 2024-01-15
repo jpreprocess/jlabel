@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Label {
     pub phoneme: Phoneme,
     pub mora: Option<Mora>,
@@ -13,14 +14,16 @@ pub struct Label {
     pub utterance: Utterance,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Phoneme {
-    pub p2: String,
-    pub p1: String,
-    pub c: String,
-    pub n1: String,
-    pub n2: String,
+    pub p2: Option<String>,
+    pub p1: Option<String>,
+    pub c: Option<String>,
+    pub n1: Option<String>,
+    pub n2: Option<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Mora {
     /// the difference between accent type and position of the current mora identity
     pub relative_accent_position: i8,
@@ -30,6 +33,7 @@ pub struct Mora {
     pub position_backward: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Word {
     /// pos (part-of-speech) of the word
     pub pos: Option<u8>,
@@ -39,6 +43,7 @@ pub struct Word {
     pub cform: Option<u8>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhraseCurrent {
     /// the number of moras in the current accent phrase
     pub mora_count: u8,
@@ -56,6 +61,7 @@ pub struct AccentPhraseCurrent {
     pub mora_position_backward: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhrasePrevNext {
     /// the number of moras in the accent phrase
     pub mora_count: u8,
@@ -67,6 +73,7 @@ pub struct AccentPhrasePrevNext {
     pub is_pause_insertion: Option<bool>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreathGroupCurrent {
     /// the number of accent phrases in the current breath group
     pub accent_phrase_count: u8,
@@ -86,6 +93,7 @@ pub struct BreathGroupCurrent {
     pub mora_position_backward: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreathGroupPrevNext {
     /// the number of accent phrases in the breath group
     pub accent_phrase_count: u8,
@@ -93,6 +101,7 @@ pub struct BreathGroupPrevNext {
     pub mora_count: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Utterance {
     /// the number of breath groups in this utterance
     pub breath_group_count: u8,
