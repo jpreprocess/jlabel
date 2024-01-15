@@ -299,7 +299,7 @@ impl Position for CategoryPosition {
 
     fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
         ranges
-            .into_iter()
+            .iter()
             .map(|s| s.parse::<u8>().map_err(ParseError::FailLiteral))
             .collect()
     }
