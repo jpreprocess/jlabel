@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-pub fn position(prefix: &str, postfix: &str) -> Option<AllPosition> {
+pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
     use AllPosition::*;
     use BooleanPosition::*;
     use CategoryPosition::*;
@@ -9,7 +9,7 @@ pub fn position(prefix: &str, postfix: &str) -> Option<AllPosition> {
     use UndefinedPotision::*;
     use UnsignedRangePosition::*;
 
-    match (prefix, postfix) {
+    match (prefix, suffix) {
         ("", "^*") => Some(Phone(P1)),
         ("*^", "-*") => Some(Phone(P2)),
         ("*-", "+*") => Some(Phone(P3)),

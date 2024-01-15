@@ -9,7 +9,7 @@ fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
     let mut chars = pattern.chars();
     let mut prefix = String::new();
     let mut range = String::new();
-    let mut postfix = String::new();
+    let mut suffix = String::new();
 
     let first = chars.next()?;
     if first == '*' {
@@ -26,20 +26,20 @@ fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
 
     let last = chars.next_back()?;
     if last == '*' {
-        postfix.push(last);
+        suffix.push(last);
         let second_last = chars.next_back()?;
-        postfix.push(second_last);
+        suffix.push(second_last);
         if second_last == ':' {
-            postfix.push(chars.next_back()?); // `A`…`K`
-            postfix.push(chars.next_back()?); // `/`
+            suffix.push(chars.next_back()?); // `A`…`K`
+            suffix.push(chars.next_back()?); // `/`
         }
         range.push_str(&chars.collect::<String>());
     } else {
         range.push_str(&chars.collect::<String>());
-        postfix.push(last);
+        suffix.push(last);
     }
 
-    Some((prefix, range, postfix))
+    Some((prefix, range, suffix))
 }
 
 macro_rules! question_arm {
@@ -59,15 +59,15 @@ pub fn question(patterns: &[String]) -> Option<AllQuestion> {
         triplets.push(split_pattern(pattern)?);
     }
 
-    let (prefix, _, postfix) = triplets.first()?;
+    let (prefix, _, suffix) = triplets.first()?;
     if !triplets
         .iter()
-        .all(|(pre, _, post)| pre == prefix && post == postfix)
+        .all(|(pre, _, post)| pre == prefix && post == suffix)
     {
         return None;
     }
 
-    let position = position(prefix, postfix)?;
+    let position = position(prefix, suffix)?;
 
     use AllPosition::*;
     match position {
