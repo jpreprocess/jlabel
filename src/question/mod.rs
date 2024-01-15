@@ -80,6 +80,7 @@ pub fn question(patterns: &Vec<String>) -> Option<AllQuestion> {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AllQuestion {
     Phone(Question<PhonePosition>),
     SignedRange(Question<SignedRangePosition>),
@@ -89,6 +90,7 @@ pub enum AllQuestion {
     Undefined(Question<UndefinedPotision>),
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Question<P: Position> {
     pub position: P,
     pub range: Option<P::Range>,
