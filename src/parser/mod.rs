@@ -321,3 +321,6 @@ impl FromStr for Label {
         LabelTokenizer::new(s).consume()
     }
 }
+
+#[cfg(test)]
+mod test;
