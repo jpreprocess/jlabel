@@ -89,7 +89,7 @@ pub trait Position {
     type Target;
     type Range;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range>;
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range>;
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
@@ -106,7 +106,7 @@ impl Position for PhonePosition {
     type Target = String;
     type Range = Vec<String>;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
         Some(ranges.iter().map(|s| s.to_string()).collect())
     }
 
@@ -124,7 +124,7 @@ impl Position for SignedRangePosition {
     type Target = i8;
     type Range = Range<i8>;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
         let first = ranges.first()?;
         if ranges.len() == 1 {
             first.parse::<i8>().ok().map(|i| i..i + 1)
@@ -214,7 +214,7 @@ impl Position for UnsignedRangePosition {
     type Target = u8;
     type Range = Range<u8>;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
         let first = ranges.first()?;
         if ranges.len() == 1 {
             first.parse::<u8>().ok().map(|i| i..i + 1)
@@ -267,7 +267,7 @@ impl Position for BooleanPosition {
     type Target = bool;
     type Range = bool;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
         let first = ranges.first()?;
         match first.as_str() {
             "0" => Some(false),
@@ -298,7 +298,7 @@ impl Position for CategoryPosition {
     type Target = u8;
     type Range = Vec<u8>;
 
-    fn range(&self, ranges: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, ranges: &[&String]) -> Option<Self::Range> {
         let mut range = Vec::new();
         for r in ranges {
             let i = r.parse::<u8>().ok()?;
@@ -323,7 +323,7 @@ impl Position for UndefinedPotision {
     type Target = ();
     type Range = ();
 
-    fn range(&self, _: &Vec<&String>) -> Option<Self::Range> {
+    fn range(&self, _: &[&String]) -> Option<Self::Range> {
         Some(())
     }
 

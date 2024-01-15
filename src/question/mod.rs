@@ -49,7 +49,7 @@ macro_rules! question_arm {
         if $triplets.len() == 1 && $triplets[0].1 == "xx" {
             Some(AllQuestion::$name(Question::new_xx($position)))
         } else {
-            let range = $position.range(&$triplets.iter().map(|(_, r, _)| r).collect());
+            let range = $position.range(&$triplets.iter().map(|(_, r, _)| r).collect::<Vec<&String>>());
             Some(AllQuestion::$name(Question::new($position, range)))
         }
     };
