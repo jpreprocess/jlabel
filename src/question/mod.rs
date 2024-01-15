@@ -118,3 +118,51 @@ impl<P: Position> Question<P> {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::question::{
+        position::{PhonePosition, SignedRangePosition},
+        question, AllQuestion, Question,
+    };
+
+    use super::split_pattern;
+
+    #[test]
+    fn splitter() {
+        assert_eq!(
+            split_pattern("a^*"),
+            Some(("".to_string(), "a".to_string(), "^*".to_string()))
+        );
+        assert_eq!(
+            split_pattern("*/A:-??+*"),
+            Some(("*/A:".to_string(), "-??".to_string(), "+*".to_string()))
+        );
+        assert_eq!(
+            split_pattern("*|?+*"),
+            Some(("*|".to_string(), "?".to_string(), "+*".to_string()))
+        );
+        assert_eq!(
+            split_pattern("*-1"),
+            Some(("*-".to_string(), "1".to_string(), "".to_string()))
+        );
+    }
+
+    #[test]
+    fn parse_question() {
+        assert_eq!(
+            question(&["a^*".to_string(), "A^*".to_string()]),
+            Some(AllQuestion::Phone(Question {
+                position: PhonePosition::P1,
+                range: Some(vec!["a".to_string(), "A".to_string()])
+            }))
+        );
+        assert_eq!(
+            question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]),
+            Some(AllQuestion::SignedRange(Question {
+                position: SignedRangePosition::A1,
+                range: Some(-128..-9)
+            }))
+        );
+    }
+}
