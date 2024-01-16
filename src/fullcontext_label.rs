@@ -333,33 +333,18 @@ mod tests {
             },
         };
 
+        assert_eq!(label.satisfies(&question(&["*=i/A:*"]).unwrap()), false);
+
         assert_eq!(
-            label.satisfies(&question(&["*=i/A:*".to_string()]).unwrap()),
+            label.satisfies(&question(&["*/A:-??+*", "*/A:-9+*"]).unwrap()),
             false
         );
+        assert_eq!(label.satisfies(&question(&["*/A:-6+*"]).unwrap()), true);
 
-        assert_eq!(
-            label.satisfies(&question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]).unwrap()),
-            false
-        );
-        assert_eq!(
-            label.satisfies(&question(&["*/A:-6+*".to_string()]).unwrap()),
-            true
-        );
+        assert_eq!(label.satisfies(&question(&["*+8/B:*"]).unwrap()), true);
 
-        assert_eq!(
-            label.satisfies(&question(&["*+8/B:*".to_string()]).unwrap()),
-            true
-        );
-
-        assert_eq!(
-            label.satisfies(&question(&["*-xx_*".to_string()]).unwrap()),
-            true
-        );
-        assert_eq!(
-            label.satisfies(&question(&["*/C:01_*".to_string()]).unwrap()),
-            true
-        );
+        assert_eq!(label.satisfies(&question(&["*-xx_*"]).unwrap()), true);
+        assert_eq!(label.satisfies(&question(&["*/C:01_*"]).unwrap()), true);
     }
 
     #[test]

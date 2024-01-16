@@ -91,7 +91,7 @@ pub trait Position {
     type Target;
     type Range;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError>;
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError>;
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
@@ -108,7 +108,7 @@ impl Position for PhonePosition {
     type Target = String;
     type Range = Vec<String>;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         Ok(ranges.iter().map(|s| s.to_string()).collect())
     }
 
@@ -126,7 +126,7 @@ impl Position for SignedRangePosition {
     type Target = i8;
     type Range = Range<i8>;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         let first = ranges.first().ok_or(ParseError::Empty)?;
         let mut range = range_i8(first)?;
         for r in ranges[1..].iter() {
@@ -203,7 +203,7 @@ impl Position for UnsignedRangePosition {
     type Target = u8;
     type Range = Range<u8>;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         let first = ranges.first().ok_or(ParseError::Empty)?;
         let mut range = range_u8(first)?;
         for r in ranges[1..].iter() {
@@ -266,9 +266,9 @@ impl Position for BooleanPosition {
     type Target = bool;
     type Range = bool;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         let first = ranges.first().ok_or(ParseError::Empty)?;
-        match first.as_str() {
+        match *first {
             "0" => Ok(false),
             "1" => Ok(true),
             _ => Err(ParseError::InvalidBoolean(first.to_string())),
@@ -297,7 +297,7 @@ impl Position for CategoryPosition {
     type Target = u8;
     type Range = Vec<u8>;
 
-    fn range(&self, ranges: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         ranges
             .iter()
             .map(|s| s.parse::<u8>().map_err(ParseError::FailLiteral))
@@ -320,7 +320,7 @@ impl Position for UndefinedPotision {
     type Target = ();
     type Range = ();
 
-    fn range(&self, _: &[&String]) -> Result<Self::Range, ParseError> {
+    fn range(&self, _: &[&str]) -> Result<Self::Range, ParseError> {
         Ok(())
     }
 

@@ -27,43 +27,27 @@ pub enum ParseError {
     InvalidBoolean(String),
 }
 
-fn split_pattern(pattern: &str) -> Option<(String, String, String)> {
-    let mut chars = pattern.chars();
-    let mut prefix = String::new();
-    let mut range = String::new();
-    let mut suffix = String::new();
-
-    let first = chars.next()?;
-    if first == '*' {
-        prefix.push(first);
-        let second = chars.next()?;
-        prefix.push(second);
-        if second == '/' {
-            prefix.push(chars.next()?); // `A`…`K`
-            prefix.push(chars.next()?); // `:`
-        }
-    } else {
-        range.push(first);
+fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
+    if !pattern.len() < 4 {
+        return None;
     }
 
-    let last = chars.next_back()?;
-    if last == '*' {
-        suffix.push(last);
-        let second_last = chars.next_back()?;
-        suffix.push(second_last);
-        if second_last == ':' {
-            suffix.push(chars.next_back()?); // `A`…`K`
-            suffix.push(chars.next_back()?); // `/`
-        }
-        range.push_str(&chars.collect::<String>());
+    let start = if pattern.starts_with("*/") {
+        4
+    } else if pattern.starts_with("*") {
+        2
     } else {
-        range.push_str(&chars.collect::<String>());
-        range.push(last);
-    }
+        0
+    };
+    let end = if pattern.ends_with(":*") {
+        pattern.len() - 4
+    } else if pattern.ends_with("*") {
+        pattern.len() - 2
+    } else {
+        pattern.len()
+    };
 
-    suffix = suffix.chars().rev().collect();
-
-    Some((prefix, range, suffix))
+    Some((&pattern[..start], &pattern[start..end], &pattern[end..]))
 }
 
 macro_rules! question_arm {
@@ -71,18 +55,14 @@ macro_rules! question_arm {
         if $triplets.len() == 1 && $triplets[0].1 == "xx" {
             Ok(AllQuestion::$name(Question::new_xx($position)))
         } else {
-            let range = $position.range(
-                &$triplets
-                    .iter()
-                    .map(|(_, r, _)| r)
-                    .collect::<Vec<&String>>(),
-            )?;
+            let range =
+                $position.range(&$triplets.into_iter().map(|(_, r, _)| r).collect::<Vec<_>>())?;
             Ok(AllQuestion::$name(Question::new($position, range)))
         }
     };
 }
 
-pub fn question(patterns: &[String]) -> Result<AllQuestion, ParseError> {
+pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
     let mut triplets = Vec::new();
     for pattern in patterns {
         triplets.push(split_pattern(pattern).ok_or(ParseError::FailSplitting)?);
@@ -163,91 +143,65 @@ mod tests {
 
     #[test]
     fn splitter() {
-        assert_eq!(
-            split_pattern("a^*"),
-            Some(("".to_string(), "a".to_string(), "^*".to_string()))
-        );
-        assert_eq!(
-            split_pattern("*/A:-??+*"),
-            Some(("*/A:".to_string(), "-??".to_string(), "+*".to_string()))
-        );
-        assert_eq!(
-            split_pattern("*|?+*"),
-            Some(("*|".to_string(), "?".to_string(), "+*".to_string()))
-        );
-        assert_eq!(
-            split_pattern("*-1"),
-            Some(("*-".to_string(), "1".to_string(), "".to_string()))
-        );
+        assert_eq!(split_pattern("a^*"), Some(("", "a", "^*")));
+        assert_eq!(split_pattern("*/A:-??+*"), Some(("*/A:", "-??", "+*")));
+        assert_eq!(split_pattern("*|?+*"), Some(("*|", "?", "+*")));
+        assert_eq!(split_pattern("*-1"), Some(("*-", "1", "")));
     }
 
     #[test]
     fn parse_question() {
         assert_eq!(
-            question(&["a^*".to_string(), "A^*".to_string()]).unwrap(),
+            question(&["a^*", "A^*"]).unwrap(),
             AllQuestion::Phone(Question {
                 position: PhonePosition::P1,
                 range: Some(vec!["a".to_string(), "A".to_string()])
             })
         );
         assert_eq!(
-            question(&["*/A:-3+*".to_string()]).unwrap(),
+            question(&["*/A:-3+*"]).unwrap(),
             AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
                 range: Some(-3..-2)
             })
         );
         assert_eq!(
-            question(&[
-                "*/A:-??+*".to_string(),
-                "*/A:-?+*".to_string(),
-                "*/A:?+*".to_string(),
-                "*/A:10+*".to_string(),
-                "*/A:11+*".to_string(),
-            ])
-            .unwrap(),
+            question(&["*/A:-??+*", "*/A:-?+*", "*/A:?+*", "*/A:10+*", "*/A:11+*",]).unwrap(),
             AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
                 range: Some(-99..12)
             })
         );
         assert_eq!(
-            question(&["*_42/I:*".to_string()]).unwrap(),
+            question(&["*_42/I:*"]).unwrap(),
             AllQuestion::UnsignedRange(Question {
                 position: UnsignedRangePosition::H2,
                 range: Some(42..43)
             })
         );
         assert_eq!(
-            question(&[
-                "*_?/I:*".to_string(),
-                "*_1?/I:*".to_string(),
-                "*_2?/I:*".to_string(),
-                "*_30/I:*".to_string(),
-                "*_31/I:*".to_string(),
-            ])
-            .unwrap(),
+            question(&["*_?/I:*", "*_1?/I:*", "*_2?/I:*", "*_30/I:*", "*_31/I:*",]).unwrap(),
             AllQuestion::UnsignedRange(Question {
                 position: UnsignedRangePosition::H2,
                 range: Some(0..32)
             })
         );
         assert_eq!(
-            question(&["*%1_*".to_string(),]).unwrap(),
+            question(&["*%1_*"]).unwrap(),
             AllQuestion::Boolean(Question {
                 position: BooleanPosition::G3,
                 range: Some(true)
             })
         );
         assert_eq!(
-            question(&["*/B:17-*".to_string(), "*/B:20-*".to_string()]).unwrap(),
+            question(&["*/B:17-*", "*/B:20-*"]).unwrap(),
             AllQuestion::Category(Question {
                 position: CategoryPosition::B1,
                 range: Some(vec![17, 20])
             })
         );
         assert_eq!(
-            question(&["*_xx_*".to_string()]).unwrap(),
+            question(&["*_xx_*"]).unwrap(),
             AllQuestion::Undefined(Question {
                 position: UndefinedPotision::G4,
                 range: None
