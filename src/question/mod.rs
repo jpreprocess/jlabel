@@ -191,22 +191,45 @@ mod tests {
             })
         );
         assert_eq!(
-            question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]).unwrap(),
+            question(&["*/A:-3+*".to_string()]).unwrap(),
             AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
-                range: Some(-99..-8)
+                range: Some(-3..-2)
+            })
+        );
+        assert_eq!(
+            question(&[
+                "*/A:-??+*".to_string(),
+                "*/A:-?+*".to_string(),
+                "*/A:?+*".to_string(),
+                "*/A:10+*".to_string(),
+                "*/A:11+*".to_string(),
+            ])
+            .unwrap(),
+            AllQuestion::SignedRange(Question {
+                position: SignedRangePosition::A1,
+                range: Some(-99..12)
+            })
+        );
+        assert_eq!(
+            question(&["*_42/I:*".to_string()]).unwrap(),
+            AllQuestion::UnsignedRange(Question {
+                position: UnsignedRangePosition::H2,
+                range: Some(42..43)
             })
         );
         assert_eq!(
             question(&[
                 "*_?/I:*".to_string(),
                 "*_1?/I:*".to_string(),
-                "*_2?/I:*".to_string()
+                "*_2?/I:*".to_string(),
+                "*_30/I:*".to_string(),
+                "*_31/I:*".to_string(),
             ])
             .unwrap(),
             AllQuestion::UnsignedRange(Question {
                 position: UnsignedRangePosition::H2,
-                range: Some(0..30)
+                range: Some(0..32)
             })
         );
         assert_eq!(
