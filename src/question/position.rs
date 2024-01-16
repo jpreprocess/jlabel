@@ -145,7 +145,7 @@ fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
     let range = match s {
         "-??" => -99..-9,
         "-?" => -9..0,
-        "?" => 0..9,
+        "?" => 0..10,
         s if s.ends_with('?') => {
             let d = s[..s.len() - 1]
                 .parse::<i8>()
@@ -220,7 +220,7 @@ impl Position for UnsignedRangePosition {
 
 fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
     let range = match s {
-        "?" => 0..9,
+        "?" => 0..10,
         s if s.ends_with('?') => {
             let d = s[..s.len() - 1]
                 .parse::<u8>()
