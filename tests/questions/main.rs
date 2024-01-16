@@ -42,7 +42,7 @@ fn parse_range_from_name_u8(name: &str) -> Option<Range<u8>> {
     if let Some(leq) = name.find("<=") {
         let n: u8 = name[leq + 2..name.len() - 1].parse().ok()?;
         Some(1..n + 1)
-    } else if let Some(eq) = name.find("=") {
+    } else if let Some(eq) = name.find('=') {
         let n = name[eq + 1..name.len() - 1].parse().ok()?;
         Some(n..n + 1)
     } else {
@@ -54,7 +54,7 @@ fn parse_range_from_name_i8(name: &str) -> Option<Range<i8>> {
     if let Some(leq) = name.find("<=") {
         let n: i8 = name[leq + 2..name.len() - 1].parse().ok()?;
         Some(-99..n + 1)
-    } else if let Some(eq) = name.find("=") {
+    } else if let Some(eq) = name.find('=') {
         let n = name[eq + 1..name.len() - 1].parse().ok()?;
         Some(n..n + 1)
     } else {

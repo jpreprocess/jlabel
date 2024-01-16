@@ -333,18 +333,15 @@ mod tests {
             },
         };
 
-        assert_eq!(label.satisfies(&question(&["*=i/A:*"]).unwrap()), false);
+        assert!(!label.satisfies(&question(&["*=i/A:*"]).unwrap()));
 
-        assert_eq!(
-            label.satisfies(&question(&["*/A:-??+*", "*/A:-9+*"]).unwrap()),
-            false
-        );
-        assert_eq!(label.satisfies(&question(&["*/A:-6+*"]).unwrap()), true);
+        assert!(!label.satisfies(&question(&["*/A:-??+*", "*/A:-9+*"]).unwrap()));
+        assert!(label.satisfies(&question(&["*/A:-6+*"]).unwrap()));
 
-        assert_eq!(label.satisfies(&question(&["*+8/B:*"]).unwrap()), true);
+        assert!(label.satisfies(&question(&["*+8/B:*"]).unwrap()));
 
-        assert_eq!(label.satisfies(&question(&["*-xx_*"]).unwrap()), true);
-        assert_eq!(label.satisfies(&question(&["*/C:01_*"]).unwrap()), true);
+        assert!(label.satisfies(&question(&["*-xx_*"]).unwrap()));
+        assert!(label.satisfies(&question(&["*/C:01_*"]).unwrap()));
     }
 
     #[test]

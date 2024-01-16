@@ -34,14 +34,14 @@ fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
 
     let start = if pattern.starts_with("*/") {
         4
-    } else if pattern.starts_with("*") {
+    } else if pattern.starts_with('*') {
         2
     } else {
         0
     };
     let end = if pattern.ends_with(":*") {
         pattern.len() - 4
-    } else if pattern.ends_with("*") {
+    } else if pattern.ends_with('*') {
         pattern.len() - 2
     } else {
         pattern.len()
