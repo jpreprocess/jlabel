@@ -286,3 +286,211 @@ pub struct Utterance {
     /// the number of moras in this utterance
     pub mora_count: u8,
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::{
+        fullcontext_label::{Mora, Word},
+        question::{question, AllQuestion, Question},
+        Label,
+    };
+
+    use super::{Phoneme, Utterance};
+
+    #[test]
+    fn query() {
+        // Note: this Label is created randomly, and is invalid.
+        let label = Label {
+            phoneme: Phoneme {
+                p2: Some("b".to_string()),
+                p1: Some("o".to_string()),
+                c: Some("N".to_string()),
+                n1: Some("s".to_string()),
+                n2: Some("a".to_string()),
+            },
+            mora: Some(Mora {
+                relative_accent_position: -6,
+                position_forward: 2,
+                position_backward: 8,
+            }),
+            word_prev: None,
+            word_curr: Some(Word {
+                pos: Some(1),
+                ctype: None,
+                cform: None,
+            }),
+            word_next: None,
+            accent_phrase_prev: None,
+            accent_phrase_curr: None,
+            accent_phrase_next: None,
+            breath_group_prev: None,
+            breath_group_curr: None,
+            breath_group_next: None,
+            utterance: Utterance {
+                breath_group_count: 3,
+                accent_phrase_count: 6,
+                mora_count: 10,
+            },
+        };
+
+        assert_eq!(
+            label.satisfies(&question(&["*=i/A:*".to_string()]).unwrap()),
+            false
+        );
+
+        assert_eq!(
+            label.satisfies(&question(&["*/A:-??+*".to_string(), "*/A:-9+*".to_string()]).unwrap()),
+            false
+        );
+        assert_eq!(
+            label.satisfies(&question(&["*/A:-6+*".to_string()]).unwrap()),
+            true
+        );
+
+        assert_eq!(
+            label.satisfies(&question(&["*+8/B:*".to_string()]).unwrap()),
+            true
+        );
+
+        assert_eq!(
+            label.satisfies(&question(&["*-xx_*".to_string()]).unwrap()),
+            true
+        );
+        assert_eq!(
+            label.satisfies(&question(&["*/C:01_*".to_string()]).unwrap()),
+            true
+        );
+    }
+
+    #[test]
+    fn all_query() {
+        let label = Label {
+            phoneme: Phoneme {
+                p2: None,
+                p1: None,
+                c: None,
+                n1: None,
+                n2: None,
+            },
+            mora: None,
+            word_prev: None,
+            word_curr: None,
+            word_next: None,
+            accent_phrase_prev: None,
+            accent_phrase_curr: None,
+            accent_phrase_next: None,
+            breath_group_prev: None,
+            breath_group_curr: None,
+            breath_group_next: None,
+            utterance: Utterance {
+                breath_group_count: 3,
+                accent_phrase_count: 6,
+                mora_count: 10,
+            },
+        };
+
+        use crate::question::position::*;
+
+        for position in [
+            PhonePosition::P1,
+            PhonePosition::P2,
+            PhonePosition::P3,
+            PhonePosition::P4,
+            PhonePosition::P5,
+        ] {
+            assert!(label.satisfies(&AllQuestion::Phone(Question {
+                position,
+                range: None,
+            })));
+        }
+
+        for position in [
+            CategoryPosition::B1,
+            CategoryPosition::B2,
+            CategoryPosition::B3,
+            CategoryPosition::C1,
+            CategoryPosition::C2,
+            CategoryPosition::C3,
+            CategoryPosition::D1,
+            CategoryPosition::D2,
+            CategoryPosition::D3,
+        ] {
+            assert!(label.satisfies(&AllQuestion::Category(Question {
+                position,
+                range: None,
+            })));
+        }
+
+        assert!(label.satisfies(&AllQuestion::SignedRange(Question {
+            position: SignedRangePosition::A1,
+            range: None,
+        })));
+
+        for position in [
+            UnsignedRangePosition::A2,
+            UnsignedRangePosition::A3,
+            UnsignedRangePosition::E1,
+            UnsignedRangePosition::E2,
+            UnsignedRangePosition::F1,
+            UnsignedRangePosition::F2,
+            UnsignedRangePosition::F5,
+            UnsignedRangePosition::F6,
+            UnsignedRangePosition::F7,
+            UnsignedRangePosition::F8,
+            UnsignedRangePosition::G1,
+            UnsignedRangePosition::G2,
+            UnsignedRangePosition::H1,
+            UnsignedRangePosition::H2,
+            UnsignedRangePosition::I1,
+            UnsignedRangePosition::I2,
+            UnsignedRangePosition::I3,
+            UnsignedRangePosition::I4,
+            UnsignedRangePosition::I5,
+            UnsignedRangePosition::I6,
+            UnsignedRangePosition::I7,
+            UnsignedRangePosition::I8,
+            UnsignedRangePosition::J1,
+            UnsignedRangePosition::J2,
+        ] {
+            assert!(label.satisfies(&AllQuestion::UnsignedRange(Question {
+                position: position.clone(),
+                range: None,
+            })));
+            assert!(!label.satisfies(&AllQuestion::UnsignedRange(Question {
+                position: position.clone(),
+                range: Some(1..2),
+            })));
+        }
+
+        for position in [
+            BooleanPosition::E3,
+            BooleanPosition::E5,
+            BooleanPosition::F3,
+            BooleanPosition::G3,
+            BooleanPosition::G5,
+        ] {
+            assert!(label.satisfies(&AllQuestion::Boolean(Question {
+                position,
+                range: None,
+            })));
+        }
+
+        assert!(label.satisfies(&AllQuestion::UnsignedRange(Question {
+            position: UnsignedRangePosition::K1,
+            range: Some(3..4),
+        })));
+        assert!(label.satisfies(&AllQuestion::UnsignedRange(Question {
+            position: UnsignedRangePosition::K2,
+            range: Some(6..7),
+        })));
+        assert!(label.satisfies(&AllQuestion::UnsignedRange(Question {
+            position: UnsignedRangePosition::K3,
+            range: Some(5..11),
+        })));
+
+        assert!(label.satisfies(&AllQuestion::Undefined(Question {
+            position: UndefinedPotision::E4,
+            range: None,
+        })));
+    }
+}

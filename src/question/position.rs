@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::{fmt::Debug, ops::Range};
 
 use super::ParseError;
 
@@ -326,5 +326,78 @@ impl Position for UndefinedPotision {
 
     fn test(&self, _: &Self::Range, _: &Self::Target) -> bool {
         true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::question::{
+        position::{extend_range, range_u8},
+        ParseError,
+    };
+
+    use super::range_i8;
+
+    #[test]
+    fn parse_i8_range() {
+        assert_eq!(range_i8("12"), Ok(12..13));
+        assert_eq!(range_i8("1?"), Ok(10..20));
+        assert_eq!(range_i8("?"), Ok(0..10));
+
+        assert_eq!(range_i8("-12"), Ok(-12..-11));
+        assert_eq!(range_i8("-?"), Ok(-9..0));
+        assert_eq!(range_i8("-??"), Ok(-99..-9));
+
+        // assert_eq!(range_i8("-1?"), Ok(-19..-9));
+    }
+
+    #[test]
+    fn parse_u8_range() {
+        assert_eq!(range_u8("12"), Ok(12..13));
+        assert_eq!(range_u8("1?"), Ok(10..20));
+        assert_eq!(range_u8("12?"), Ok(120..130));
+        assert_eq!(range_u8("?"), Ok(0..10));
+    }
+
+    #[test]
+    fn range_fail() {
+        use std::num::IntErrorKind;
+        assert!(matches!(
+            range_u8("?2"),
+            Err(ParseError::FailLiteral(e)) if *e.kind() == IntErrorKind::InvalidDigit
+        ));
+        assert!(matches!(
+            range_i8("?2"),
+            Err(ParseError::FailLiteral(e)) if *e.kind() == IntErrorKind::InvalidDigit
+        ));
+
+        assert!(matches!(
+            range_u8("???"),
+            Err(ParseError::FailWildcard(e)) if *e.kind() == IntErrorKind::InvalidDigit
+        ));
+        assert!(matches!(
+            range_i8("???"),
+            Err(ParseError::FailWildcard(e)) if *e.kind() == IntErrorKind::InvalidDigit
+        ));
+    }
+
+    #[test]
+    fn extend_range_1() {
+        let mut range = -9..-9;
+        extend_range(&mut range, -9..-6).unwrap();
+        assert_eq!(range, -9..-6);
+        extend_range(&mut range, -6..-3).unwrap();
+        assert_eq!(range, -9..-3);
+        extend_range(&mut range, -3..2).unwrap();
+        assert_eq!(range, -9..2);
+
+        assert_eq!(
+            extend_range(&mut range, -16..-10),
+            Err(ParseError::IncontinuousRange)
+        );
+        assert_eq!(
+            extend_range(&mut range, 1..3),
+            Err(ParseError::IncontinuousRange)
+        );
     }
 }

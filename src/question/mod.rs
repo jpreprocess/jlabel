@@ -7,7 +7,7 @@ use position::{
     SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
 };
 
-#[derive(Debug, Clone, thiserror::Error)]
+#[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
     #[error("Failed splitting")]
     FailSplitting,
@@ -152,7 +152,10 @@ impl<P: Position> Question<P> {
 #[cfg(test)]
 mod tests {
     use crate::question::{
-        position::{PhonePosition, SignedRangePosition},
+        position::{
+            BooleanPosition, CategoryPosition, PhonePosition, SignedRangePosition,
+            UndefinedPotision, UnsignedRangePosition,
+        },
         question, AllQuestion, Question,
     };
 
@@ -192,6 +195,39 @@ mod tests {
             AllQuestion::SignedRange(Question {
                 position: SignedRangePosition::A1,
                 range: Some(-99..-8)
+            })
+        );
+        assert_eq!(
+            question(&[
+                "*_?/I:*".to_string(),
+                "*_1?/I:*".to_string(),
+                "*_2?/I:*".to_string()
+            ])
+            .unwrap(),
+            AllQuestion::UnsignedRange(Question {
+                position: UnsignedRangePosition::H2,
+                range: Some(0..30)
+            })
+        );
+        assert_eq!(
+            question(&["*%1_*".to_string(),]).unwrap(),
+            AllQuestion::Boolean(Question {
+                position: BooleanPosition::G3,
+                range: Some(true)
+            })
+        );
+        assert_eq!(
+            question(&["*/B:17-*".to_string(), "*/B:20-*".to_string()]).unwrap(),
+            AllQuestion::Category(Question {
+                position: CategoryPosition::B1,
+                range: Some(vec![17, 20])
+            })
+        );
+        assert_eq!(
+            question(&["*_xx_*".to_string()]).unwrap(),
+            AllQuestion::Undefined(Question {
+                position: UndefinedPotision::G4,
+                range: None
             })
         );
     }
