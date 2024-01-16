@@ -220,7 +220,7 @@ impl Position for UnsignedRangePosition {
 
 fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
     let range = match s {
-        "?" => 0..10,
+        "?" => 1..10,
         s if s.ends_with('?') => {
             let d = s[..s.len() - 1]
                 .parse::<u8>()
@@ -356,7 +356,7 @@ mod tests {
         assert_eq!(range_u8("12"), Ok(12..13));
         assert_eq!(range_u8("1?"), Ok(10..20));
         assert_eq!(range_u8("12?"), Ok(120..130));
-        assert_eq!(range_u8("?"), Ok(0..10));
+        assert_eq!(range_u8("?"), Ok(1..10));
     }
 
     #[test]

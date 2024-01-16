@@ -183,7 +183,7 @@ mod tests {
             question(&["*_?/I:*", "*_1?/I:*", "*_2?/I:*", "*_30/I:*", "*_31/I:*",]).unwrap(),
             AllQuestion::UnsignedRange(Question {
                 position: UnsignedRangePosition::H2,
-                range: Some(0..32)
+                range: Some(1..32)
             })
         );
         assert_eq!(
