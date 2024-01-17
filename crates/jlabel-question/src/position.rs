@@ -98,7 +98,7 @@ pub trait Position {
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PhonePosition {
     P1,
     P2,
@@ -130,7 +130,7 @@ impl Position for PhonePosition {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SignedRangePosition {
     A1,
 }
@@ -180,7 +180,7 @@ fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
     Ok(range)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnsignedRangePosition {
     A2,
     A3,
@@ -350,7 +350,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BooleanPosition {
     E3,
     E5,
@@ -404,7 +404,7 @@ impl Position for BooleanPosition {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CategoryPosition {
     B1,
     B2,
@@ -447,7 +447,7 @@ impl Position for CategoryPosition {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UndefinedPotision {
     E4,
     F4,

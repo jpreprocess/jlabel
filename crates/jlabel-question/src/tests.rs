@@ -1,5 +1,8 @@
 use super::*;
-use jlabel::{Label, Mora, Phoneme, Utterance, Word};
+use jlabel::{
+    AccentPhraseCurrent, AccentPhrasePrevNext, BreathGroupCurrent, BreathGroupPrevNext, Label,
+    Mora, Phoneme, Utterance, Word,
+};
 
 #[test]
 fn splitter() {
@@ -133,7 +136,7 @@ fn query() {
 
 #[test]
 fn all_query() {
-    let label = Label {
+    let nones = Label {
         phoneme: Phoneme {
             p2: None,
             p1: None,
@@ -152,9 +155,82 @@ fn all_query() {
         breath_group_curr: None,
         breath_group_next: None,
         utterance: Utterance {
-            breath_group_count: 3,
-            accent_phrase_count: 6,
-            mora_count: 10,
+            breath_group_count: 254,
+            accent_phrase_count: 254,
+            mora_count: 254,
+        },
+    };
+    let zeros = Label {
+        phoneme: Phoneme {
+            p2: Some("z".to_string()),
+            p1: Some("z".to_string()),
+            c: Some("z".to_string()),
+            n1: Some("z".to_string()),
+            n2: Some("z".to_string()),
+        },
+        mora: Some(Mora {
+            relative_accent_position: 0,
+            position_forward: 0,
+            position_backward: 0,
+        }),
+        word_prev: Some(Word {
+            pos: Some(0),
+            ctype: Some(0),
+            cform: Some(0),
+        }),
+        word_curr: Some(Word {
+            pos: Some(0),
+            ctype: Some(0),
+            cform: Some(0),
+        }),
+        word_next: Some(Word {
+            pos: Some(0),
+            ctype: Some(0),
+            cform: Some(0),
+        }),
+        accent_phrase_prev: Some(AccentPhrasePrevNext {
+            mora_count: 0,
+            accent_position: 0,
+            is_interrogative: false,
+            is_pause_insertion: Some(false),
+        }),
+        accent_phrase_curr: Some(AccentPhraseCurrent {
+            mora_count: 0,
+            accent_position: 0,
+            is_interrogative: false,
+            accent_phrase_position_forward: 0,
+            accent_phrase_position_backward: 0,
+            mora_position_forward: 0,
+            mora_position_backward: 0,
+        }),
+        accent_phrase_next: Some(AccentPhrasePrevNext {
+            mora_count: 0,
+            accent_position: 0,
+            is_interrogative: false,
+            is_pause_insertion: Some(false),
+        }),
+        breath_group_prev: Some(BreathGroupPrevNext {
+            accent_phrase_count: 0,
+            mora_count: 0,
+        }),
+        breath_group_curr: Some(BreathGroupCurrent {
+            accent_phrase_count: 0,
+            mora_count: 0,
+            breath_group_position_forward: 0,
+            breath_group_position_backward: 0,
+            accent_phrase_position_forward: 0,
+            accent_phrase_position_backward: 0,
+            mora_position_forward: 0,
+            mora_position_backward: 0,
+        }),
+        breath_group_next: Some(BreathGroupPrevNext {
+            accent_phrase_count: 0,
+            mora_count: 0,
+        }),
+        utterance: Utterance {
+            breath_group_count: 0,
+            accent_phrase_count: 0,
+            mora_count: 0,
         },
     };
 
@@ -169,7 +245,12 @@ fn all_query() {
             position,
             range: None,
         });
-        assert!(q.test(&label));
+        assert!(q.test(&nones));
+        let q = AllQuestion::Phone(Question {
+            position,
+            range: Some(vec!["z".to_string()]),
+        });
+        assert!(q.test(&zeros));
     }
 
     for position in [
@@ -187,14 +268,24 @@ fn all_query() {
             position,
             range: None,
         });
-        assert!(q.test(&label));
+        assert!(q.test(&nones));
+        let q = AllQuestion::Category(Question {
+            position,
+            range: Some(vec![0]),
+        });
+        assert!(q.test(&zeros));
     }
 
     let q = AllQuestion::SignedRange(Question {
         position: SignedRangePosition::A1,
         range: None,
     });
-    assert!(q.test(&label));
+    assert!(q.test(&nones));
+    let q = AllQuestion::SignedRange(Question {
+        position: SignedRangePosition::A1,
+        range: Some(0..1),
+    });
+    assert!(q.test(&zeros));
 
     for position in [
         UnsignedRangePosition::A2,
@@ -223,15 +314,15 @@ fn all_query() {
         UnsignedRangePosition::J2,
     ] {
         let q = AllQuestion::UnsignedRange(Question {
-            position: position.clone(),
+            position: position,
             range: None,
         });
-        assert!(q.test(&label));
+        assert!(q.test(&nones));
         let q = AllQuestion::UnsignedRange(Question {
-            position: position.clone(),
+            position: position,
             range: Some(0..1),
         });
-        assert!(!q.test(&label));
+        assert!(q.test(&zeros));
     }
 
     for position in [
@@ -245,28 +336,34 @@ fn all_query() {
             position,
             range: None,
         });
-        assert!(q.test(&label));
+        assert!(q.test(&nones));
+        let q = AllQuestion::Boolean(Question {
+            position,
+            range: Some(false),
+        });
+        assert!(q.test(&zeros));
     }
 
-    let q = AllQuestion::UnsignedRange(Question {
-        position: UnsignedRangePosition::K1,
-        range: Some(3..4),
-    });
-    assert!(q.test(&label));
-    let q = AllQuestion::UnsignedRange(Question {
-        position: UnsignedRangePosition::K2,
-        range: Some(6..7),
-    });
-    assert!(q.test(&label));
-    let q = AllQuestion::UnsignedRange(Question {
-        position: UnsignedRangePosition::K3,
-        range: Some(5..11),
-    });
-    assert!(q.test(&label));
+    for position in [
+        UnsignedRangePosition::K1,
+        UnsignedRangePosition::K2,
+        UnsignedRangePosition::K3,
+    ] {
+        let q = AllQuestion::UnsignedRange(Question {
+            position,
+            range: Some(254..255),
+        });
+        assert!(q.test(&nones));
+        let q = AllQuestion::UnsignedRange(Question {
+            position,
+            range: Some(0..1),
+        });
+        assert!(q.test(&zeros));
+    }
 
     let q = AllQuestion::Undefined(Question {
         position: UndefinedPotision::E4,
         range: None,
     });
-    assert!(q.test(&label));
+    assert!(q.test(&nones));
 }
