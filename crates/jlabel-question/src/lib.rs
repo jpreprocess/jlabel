@@ -61,6 +61,23 @@ macro_rules! match_position {
     };
 }
 
+/// Parses question patterns in string, and if succeeds, returns the parsed question (AllQuestion).
+///
+/// Here is the necessary condition for the pattern to succeed in parsing,
+/// but some questions may not succeed even if they fulfill these requirements.
+///
+/// - The patterns must be valid as htsvoice question pattern.
+///   - Using `*` and `?` as wildcard, matches the entire full-context label.
+///   - The pattern that cannot match full-context label in any situation (e.g. `*/A:-?????+*`) are not allowed.
+/// - All the patterns must be about the same position (e.g. the first element of Phoneme, the last element of field `J`, etc.).
+/// - Each pattern must *not* have conditions on two or more positions.
+/// - When the pattern is about position of numerical field (except for categorical field such as `B`, `C`, or `D`),
+///   - The pattern must be continuous.
+///   - The pattern must be arranged in ascending order.
+///   - Minus sign (`-`) can only be used in the first element of `A`.
+///
+/// Because this function cannot parse all of the valid htsvoice question patterns,
+/// we recommend falling back to string&wildcard matching in case of failed parsing.
 pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
     let [first, rest @ ..] = patterns else {
         return Err(ParseError::Empty);
@@ -103,6 +120,9 @@ pub enum AllQuestion {
 }
 
 impl AllQuestion {
+    /// Checks if the full-context label matches the question.
+    ///
+    /// If you want to `test` on string label, parse it using `Label::from_str()` beforehand.
     pub fn test(&self, label: &Label) -> bool {
         match self {
             Self::Phone(q) => q.test(label),
