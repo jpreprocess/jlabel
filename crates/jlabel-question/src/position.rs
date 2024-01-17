@@ -56,6 +56,11 @@ pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
         ("*%", "_*") => Some(Boolean(G3)),
         ("*_", "_*") => Some(Undefined(G4)),
         ("*_", "/H:*") => Some(Boolean(G5)),
+        ("*-", "/H:*") => {
+            // due to some bug in htsvoice, this arm is needed
+            eprintln!("Warning: symbol before g5 should be `_` instead of `-`");
+            Some(Boolean(G5))
+        }
 
         ("*/H:", "_*") => Some(UnsignedRange(H1)),
         ("*_", "/I:*") => Some(UnsignedRange(H2)),
