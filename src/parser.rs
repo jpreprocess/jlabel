@@ -176,7 +176,7 @@ impl<'a> LabelTokenizer<'a> {
         }
     }
 
-    /// `/F:f1_f2#_f3_f4@_f5_f6|f7_f8`
+    /// `/F:f1_f2#f3_f4@f5_f6|f7_f8`
     fn f(&mut self) -> Result<Option<AccentPhraseCurrent>, ParseError> {
         let f1 = Self::parse_or_xx(self.until("_")?)?;
         let f2 = Self::parse_or_xx(self.until("#")?)?;
@@ -321,6 +321,3 @@ impl FromStr for Label {
         LabelTokenizer::new(s).consume()
     }
 }
-
-#[cfg(test)]
-mod test;

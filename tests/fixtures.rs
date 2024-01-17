@@ -1,8 +1,10 @@
-use super::*;
+use jlabel::{
+    AccentPhraseCurrent, AccentPhrasePrevNext, BreathGroupCurrent, BreathGroupPrevNext, Label,
+    Mora, Phoneme, Utterance, Word,
+};
 
-#[test]
-fn test_parse() {
-    let tests = [
+pub fn fixtures() -> [(&'static str, Label); 11] {
+    [
         (
             "xx^xx-sil+k=o/A:xx+xx+xx/B:xx-xx_xx/C:xx_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:xx_xx#xx_xx@xx_xx|xx_xx/G:5_5%0_xx_xx/H:xx_xx/I:xx-xx@xx+xx&xx-xx|xx+xx/J:1_5/K:1+1-5",
             Label {
@@ -541,10 +543,5 @@ fn test_parse() {
                 },
             },
         ),
-    ];
-
-    for (input, expected) in tests.iter() {
-        let actual = input.parse::<Label>().unwrap();
-        assert_eq!(&actual, expected);
-    }
+    ]
 }
