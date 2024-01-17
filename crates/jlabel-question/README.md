@@ -1,6 +1,6 @@
 # jlabel-question
 
-Full-context label question parser and evaluator against jlabel.
+Full-context label question parser and matcher.
 
 ## Usage
 
@@ -25,4 +25,4 @@ BSD-3-Clause
 
 ## API Reference
 
-- [jlabel](https://docs.rs/jlabel)
+- [jlabel-question](https://docs.rs/jlabel-question)
