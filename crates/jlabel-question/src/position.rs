@@ -89,6 +89,18 @@ pub enum AllPosition {
     Undefined(UndefinedPotision),
 }
 
+macro_rules! as_ref_map {
+    ($label:ident.$block:ident.$prop:ident) => {
+        $label.$block.as_ref().map(|b| &b.$prop)
+    };
+}
+
+macro_rules! as_ref_and_then {
+    ($label:ident.$block:ident.$prop:ident) => {
+        $label.$block.as_ref().and_then(|b| b.$prop.as_ref())
+    };
+}
+
 pub trait Position {
     type Target;
     type Range;
@@ -151,7 +163,7 @@ impl Position for SignedRangePosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::A1 => label.mora.as_ref().map(|m| &m.relative_accent_position),
+            Self::A1 => as_ref_map!(label.mora.relative_accent_position),
         }
     }
 
@@ -234,78 +246,30 @@ impl Position for UnsignedRangePosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::A2 => label.mora.as_ref().map(|m| &m.position_forward),
-            Self::A3 => label.mora.as_ref().map(|m| &m.position_backward),
-            Self::E1 => label.accent_phrase_prev.as_ref().map(|a| &a.mora_count),
-            Self::E2 => label
-                .accent_phrase_prev
-                .as_ref()
-                .map(|a| &a.accent_position),
-            Self::F1 => label.accent_phrase_curr.as_ref().map(|a| &a.mora_count),
-            Self::F2 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.accent_position),
-            Self::F5 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.accent_phrase_position_forward),
-            Self::F6 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.accent_phrase_position_backward),
-            Self::F7 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.mora_position_forward),
-            Self::F8 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.mora_position_backward),
-            Self::G1 => label.accent_phrase_next.as_ref().map(|a| &a.mora_count),
-            Self::G2 => label
-                .accent_phrase_next
-                .as_ref()
-                .map(|a| &a.accent_position),
-            Self::H1 => label
-                .breath_group_prev
-                .as_ref()
-                .map(|b| &b.accent_phrase_count),
-            Self::H2 => label.breath_group_prev.as_ref().map(|b| &b.mora_count),
-            Self::I1 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.accent_phrase_count),
-            Self::I2 => label.breath_group_curr.as_ref().map(|b| &b.mora_count),
-            Self::I3 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.breath_group_position_forward),
-            Self::I4 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.breath_group_position_backward),
-            Self::I5 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.accent_phrase_position_forward),
-            Self::I6 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.accent_phrase_position_backward),
-            Self::I7 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.mora_position_forward),
-            Self::I8 => label
-                .breath_group_curr
-                .as_ref()
-                .map(|b| &b.mora_position_backward),
-            Self::J1 => label
-                .breath_group_next
-                .as_ref()
-                .map(|b| &b.accent_phrase_count),
-            Self::J2 => label.breath_group_next.as_ref().map(|b| &b.mora_count),
+            Self::A2 => as_ref_map!(label.mora.position_forward),
+            Self::A3 => as_ref_map!(label.mora.position_backward),
+            Self::E1 => as_ref_map!(label.accent_phrase_prev.mora_count),
+            Self::E2 => as_ref_map!(label.accent_phrase_prev.accent_position),
+            Self::F1 => as_ref_map!(label.accent_phrase_curr.mora_count),
+            Self::F2 => as_ref_map!(label.accent_phrase_curr.accent_position),
+            Self::F5 => as_ref_map!(label.accent_phrase_curr.accent_phrase_position_forward),
+            Self::F6 => as_ref_map!(label.accent_phrase_curr.accent_phrase_position_backward),
+            Self::F7 => as_ref_map!(label.accent_phrase_curr.mora_position_forward),
+            Self::F8 => as_ref_map!(label.accent_phrase_curr.mora_position_backward),
+            Self::G1 => as_ref_map!(label.accent_phrase_next.mora_count),
+            Self::G2 => as_ref_map!(label.accent_phrase_next.accent_position),
+            Self::H1 => as_ref_map!(label.breath_group_prev.accent_phrase_count),
+            Self::H2 => as_ref_map!(label.breath_group_prev.mora_count),
+            Self::I1 => as_ref_map!(label.breath_group_curr.accent_phrase_count),
+            Self::I2 => as_ref_map!(label.breath_group_curr.mora_count),
+            Self::I3 => as_ref_map!(label.breath_group_curr.breath_group_position_forward),
+            Self::I4 => as_ref_map!(label.breath_group_curr.breath_group_position_backward),
+            Self::I5 => as_ref_map!(label.breath_group_curr.accent_phrase_position_forward),
+            Self::I6 => as_ref_map!(label.breath_group_curr.accent_phrase_position_backward),
+            Self::I7 => as_ref_map!(label.breath_group_curr.mora_position_forward),
+            Self::I8 => as_ref_map!(label.breath_group_curr.mora_position_backward),
+            Self::J1 => as_ref_map!(label.breath_group_next.accent_phrase_count),
+            Self::J2 => as_ref_map!(label.breath_group_next.mora_count),
             Self::K1 => Some(&label.utterance.breath_group_count),
             Self::K2 => Some(&label.utterance.accent_phrase_count),
             Self::K3 => Some(&label.utterance.mora_count),
@@ -376,26 +340,11 @@ impl Position for BooleanPosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::E3 => label
-                .accent_phrase_prev
-                .as_ref()
-                .map(|a| &a.is_interrogative),
-            Self::E5 => label
-                .accent_phrase_prev
-                .as_ref()
-                .and_then(|a| a.is_pause_insertion.as_ref()),
-            Self::F3 => label
-                .accent_phrase_curr
-                .as_ref()
-                .map(|a| &a.is_interrogative),
-            Self::G3 => label
-                .accent_phrase_next
-                .as_ref()
-                .map(|a| &a.is_interrogative),
-            Self::G5 => label
-                .accent_phrase_next
-                .as_ref()
-                .and_then(|b| b.is_pause_insertion.as_ref()),
+            Self::E3 => as_ref_map!(label.accent_phrase_prev.is_interrogative),
+            Self::E5 => as_ref_and_then!(label.accent_phrase_prev.is_pause_insertion),
+            Self::F3 => as_ref_map!(label.accent_phrase_curr.is_interrogative),
+            Self::G3 => as_ref_map!(label.accent_phrase_next.is_interrogative),
+            Self::G5 => as_ref_and_then!(label.accent_phrase_next.is_pause_insertion),
         }
     }
 
@@ -430,15 +379,15 @@ impl Position for CategoryPosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::B1 => label.word_prev.as_ref().and_then(|w| w.pos.as_ref()),
-            Self::B2 => label.word_prev.as_ref().and_then(|w| w.ctype.as_ref()),
-            Self::B3 => label.word_prev.as_ref().and_then(|w| w.cform.as_ref()),
-            Self::C1 => label.word_curr.as_ref().and_then(|w| w.pos.as_ref()),
-            Self::C2 => label.word_curr.as_ref().and_then(|w| w.ctype.as_ref()),
-            Self::C3 => label.word_curr.as_ref().and_then(|w| w.cform.as_ref()),
-            Self::D1 => label.word_next.as_ref().and_then(|w| w.pos.as_ref()),
-            Self::D2 => label.word_next.as_ref().and_then(|w| w.ctype.as_ref()),
-            Self::D3 => label.word_next.as_ref().and_then(|w| w.cform.as_ref()),
+            Self::B1 => as_ref_and_then!(label.word_prev.pos),
+            Self::B2 => as_ref_and_then!(label.word_prev.ctype),
+            Self::B3 => as_ref_and_then!(label.word_prev.cform),
+            Self::C1 => as_ref_and_then!(label.word_curr.pos),
+            Self::C2 => as_ref_and_then!(label.word_curr.ctype),
+            Self::C3 => as_ref_and_then!(label.word_curr.cform),
+            Self::D1 => as_ref_and_then!(label.word_next.pos),
+            Self::D2 => as_ref_and_then!(label.word_next.ctype),
+            Self::D3 => as_ref_and_then!(label.word_next.cform),
         }
     }
 
