@@ -1,4 +1,4 @@
-use crate::fullcontext_label::{
+use jlabel::{
     AccentPhraseCurrent, AccentPhrasePrevNext, BreathGroupCurrent, BreathGroupPrevNext, Label,
     Mora, Phoneme, Utterance, Word,
 };

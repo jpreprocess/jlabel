@@ -313,6 +313,3 @@ impl Display for Label {
         Serializer::new(f).fmt(self)
     }
 }
-
-#[cfg(test)]
-mod test;

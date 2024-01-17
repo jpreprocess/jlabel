@@ -1,4 +1,5 @@
-use crate::fixture::fixtures;
+mod fixtures;
+use fixtures::fixtures;
 
 #[test]
 fn test_serialize() {
