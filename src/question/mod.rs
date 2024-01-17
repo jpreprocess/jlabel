@@ -7,6 +7,8 @@ use position::{
     SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
 };
 
+use crate::Label;
+
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
     #[error("Failed splitting")]
@@ -99,6 +101,19 @@ pub enum AllQuestion {
     Undefined(Question<UndefinedPotision>),
 }
 
+impl AllQuestion {
+    pub fn test(&self, label: &Label) -> bool {
+        match self {
+            Self::Phone(q) => q.test(label),
+            Self::SignedRange(q) => q.test(label),
+            Self::UnsignedRange(q) => q.test(label),
+            Self::Boolean(q) => q.test(label),
+            Self::Category(q) => q.test(label),
+            Self::Undefined(q) => q.test(label),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Question<P: Position> {
     pub position: P,
@@ -120,8 +135,8 @@ impl<P: Position> Question<P> {
         }
     }
 
-    pub fn test(&self, target: &Option<P::Target>) -> bool {
-        match (&self.range, target) {
+    pub fn test(&self, label: &Label) -> bool {
+        match (&self.range, self.position.get(&label)) {
             (Some(range), Some(target)) => self.position.test(range, target),
             (None, None) => true,
             _ => false,
@@ -130,82 +145,4 @@ impl<P: Position> Question<P> {
 }
 
 #[cfg(test)]
-mod tests {
-    use crate::question::{
-        position::{
-            BooleanPosition, CategoryPosition, PhonePosition, SignedRangePosition,
-            UndefinedPotision, UnsignedRangePosition,
-        },
-        question, AllQuestion, Question,
-    };
-
-    use super::split_pattern;
-
-    #[test]
-    fn splitter() {
-        assert_eq!(split_pattern("a^*"), Some(("", "a", "^*")));
-        assert_eq!(split_pattern("*/A:-??+*"), Some(("*/A:", "-??", "+*")));
-        assert_eq!(split_pattern("*|?+*"), Some(("*|", "?", "+*")));
-        assert_eq!(split_pattern("*-1"), Some(("*-", "1", "")));
-    }
-
-    #[test]
-    fn parse_question() {
-        assert_eq!(
-            question(&["a^*", "A^*"]).unwrap(),
-            AllQuestion::Phone(Question {
-                position: PhonePosition::P1,
-                range: Some(vec!["a".to_string(), "A".to_string()])
-            })
-        );
-        assert_eq!(
-            question(&["*/A:-3+*"]).unwrap(),
-            AllQuestion::SignedRange(Question {
-                position: SignedRangePosition::A1,
-                range: Some(-3..-2)
-            })
-        );
-        assert_eq!(
-            question(&["*/A:-??+*", "*/A:-?+*", "*/A:?+*", "*/A:10+*", "*/A:11+*",]).unwrap(),
-            AllQuestion::SignedRange(Question {
-                position: SignedRangePosition::A1,
-                range: Some(-99..12)
-            })
-        );
-        assert_eq!(
-            question(&["*_42/I:*"]).unwrap(),
-            AllQuestion::UnsignedRange(Question {
-                position: UnsignedRangePosition::H2,
-                range: Some(42..43)
-            })
-        );
-        assert_eq!(
-            question(&["*_?/I:*", "*_1?/I:*", "*_2?/I:*", "*_30/I:*", "*_31/I:*",]).unwrap(),
-            AllQuestion::UnsignedRange(Question {
-                position: UnsignedRangePosition::H2,
-                range: Some(1..32)
-            })
-        );
-        assert_eq!(
-            question(&["*%1_*"]).unwrap(),
-            AllQuestion::Boolean(Question {
-                position: BooleanPosition::G3,
-                range: Some(true)
-            })
-        );
-        assert_eq!(
-            question(&["*/B:17-*", "*/B:20-*"]).unwrap(),
-            AllQuestion::Category(Question {
-                position: CategoryPosition::B1,
-                range: Some(vec![17, 20])
-            })
-        );
-        assert_eq!(
-            question(&["*_xx_*"]).unwrap(),
-            AllQuestion::Undefined(Question {
-                position: UndefinedPotision::G4,
-                range: None
-            })
-        );
-    }
-}
+mod tests;

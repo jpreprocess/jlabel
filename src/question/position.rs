@@ -1,5 +1,7 @@
 use std::{fmt::Debug, ops::Range};
 
+use crate::Label;
+
 use super::ParseError;
 
 pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
@@ -92,6 +94,7 @@ pub trait Position {
     type Range;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError>;
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target>;
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
@@ -110,6 +113,16 @@ impl Position for PhonePosition {
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         Ok(ranges.iter().map(|s| s.to_string()).collect())
+    }
+
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::P1 => label.phoneme.p1.as_ref(),
+            Self::P2 => label.phoneme.p2.as_ref(),
+            Self::P3 => label.phoneme.c.as_ref(),
+            Self::P4 => label.phoneme.n1.as_ref(),
+            Self::P5 => label.phoneme.n2.as_ref(),
+        }
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -134,6 +147,12 @@ impl Position for SignedRangePosition {
             extend_range(&mut range, r)?;
         }
         Ok(range)
+    }
+
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::A1 => label.mora.as_ref().map(|m| &m.relative_accent_position),
+        }
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -213,6 +232,86 @@ impl Position for UnsignedRangePosition {
         Ok(range)
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::A2 => label.mora.as_ref().map(|m| &m.position_forward),
+            Self::A3 => label.mora.as_ref().map(|m| &m.position_backward),
+            Self::E1 => label.accent_phrase_prev.as_ref().map(|a| &a.mora_count),
+            Self::E2 => label
+                .accent_phrase_prev
+                .as_ref()
+                .map(|a| &a.accent_position),
+            Self::F1 => label.accent_phrase_curr.as_ref().map(|a| &a.mora_count),
+            Self::F2 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.accent_position),
+            Self::F5 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.accent_phrase_position_forward),
+            Self::F6 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.accent_phrase_position_backward),
+            Self::F7 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.mora_position_forward),
+            Self::F8 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.mora_position_backward),
+            Self::G1 => label.accent_phrase_next.as_ref().map(|a| &a.mora_count),
+            Self::G2 => label
+                .accent_phrase_next
+                .as_ref()
+                .map(|a| &a.accent_position),
+            Self::H1 => label
+                .breath_group_prev
+                .as_ref()
+                .map(|b| &b.accent_phrase_count),
+            Self::H2 => label.breath_group_prev.as_ref().map(|b| &b.mora_count),
+            Self::I1 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.accent_phrase_count),
+            Self::I2 => label.breath_group_curr.as_ref().map(|b| &b.mora_count),
+            Self::I3 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.breath_group_position_forward),
+            Self::I4 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.breath_group_position_backward),
+            Self::I5 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.accent_phrase_position_forward),
+            Self::I6 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.accent_phrase_position_backward),
+            Self::I7 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.mora_position_forward),
+            Self::I8 => label
+                .breath_group_curr
+                .as_ref()
+                .map(|b| &b.mora_position_backward),
+            Self::J1 => label
+                .breath_group_next
+                .as_ref()
+                .map(|b| &b.accent_phrase_count),
+            Self::J2 => label.breath_group_next.as_ref().map(|b| &b.mora_count),
+            Self::K1 => Some(&label.utterance.breath_group_count),
+            Self::K2 => Some(&label.utterance.accent_phrase_count),
+            Self::K3 => Some(&label.utterance.mora_count),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
@@ -275,6 +374,31 @@ impl Position for BooleanPosition {
         }
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::E3 => label
+                .accent_phrase_prev
+                .as_ref()
+                .map(|a| &a.is_interrogative),
+            Self::E5 => label
+                .accent_phrase_prev
+                .as_ref()
+                .and_then(|a| a.is_pause_insertion.as_ref()),
+            Self::F3 => label
+                .accent_phrase_curr
+                .as_ref()
+                .map(|a| &a.is_interrogative),
+            Self::G3 => label
+                .accent_phrase_next
+                .as_ref()
+                .map(|a| &a.is_interrogative),
+            Self::G5 => label
+                .accent_phrase_next
+                .as_ref()
+                .and_then(|b| b.is_pause_insertion.as_ref()),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range == target
     }
@@ -304,6 +428,20 @@ impl Position for CategoryPosition {
             .collect()
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::B1 => label.word_prev.as_ref().and_then(|w| w.pos.as_ref()),
+            Self::B2 => label.word_prev.as_ref().and_then(|w| w.ctype.as_ref()),
+            Self::B3 => label.word_prev.as_ref().and_then(|w| w.cform.as_ref()),
+            Self::C1 => label.word_curr.as_ref().and_then(|w| w.pos.as_ref()),
+            Self::C2 => label.word_curr.as_ref().and_then(|w| w.ctype.as_ref()),
+            Self::C3 => label.word_curr.as_ref().and_then(|w| w.cform.as_ref()),
+            Self::D1 => label.word_next.as_ref().and_then(|w| w.pos.as_ref()),
+            Self::D2 => label.word_next.as_ref().and_then(|w| w.ctype.as_ref()),
+            Self::D3 => label.word_next.as_ref().and_then(|w| w.cform.as_ref()),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
@@ -322,6 +460,10 @@ impl Position for UndefinedPotision {
 
     fn range(&self, _: &[&str]) -> Result<Self::Range, ParseError> {
         Ok(())
+    }
+
+    fn get<'a>(&self, _: &'a Label) -> Option<&'a Self::Target> {
+        None
     }
 
     fn test(&self, _: &Self::Range, _: &Self::Target) -> bool {
