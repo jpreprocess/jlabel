@@ -137,7 +137,7 @@ impl<P: Position> Question<P> {
     }
 
     pub fn test(&self, label: &Label) -> bool {
-        match (&self.range, self.position.get(&label)) {
+        match (&self.range, self.position.get(label)) {
             (Some(range), Some(target)) => self.position.test(range, target),
             (None, None) => true,
             _ => false,
