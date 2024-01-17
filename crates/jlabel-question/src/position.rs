@@ -4,6 +4,7 @@ use crate::Label;
 
 use super::ParseError;
 
+/// Parser for position.
 pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
     use AllPosition::*;
     use BooleanPosition::*;
@@ -80,12 +81,19 @@ pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
     }
 }
 
+/// A position. All positions can be represented by this enum.
 pub enum AllPosition {
+    /// Phone fields
     Phone(PhonePosition),
+    /// Signed integer fields
     SignedRange(SignedRangePosition),
+    /// Unsigned integer fields
     UnsignedRange(UnsignedRangePosition),
+    /// Boolean fields
     Boolean(BooleanPosition),
+    /// Numerical categorical fields
     Category(CategoryPosition),
+    /// Undefined (always `xx`) fields
     Undefined(UndefinedPotision),
 }
 
@@ -110,6 +118,7 @@ pub trait Position {
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
+/// Positions of phone fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PhonePosition {
     P1,
@@ -142,6 +151,7 @@ impl Position for PhonePosition {
     }
 }
 
+/// Positions with signed integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SignedRangePosition {
     A1,
@@ -192,6 +202,7 @@ fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
     Ok(range)
 }
 
+/// Positions with unsigned integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnsignedRangePosition {
     A2,
@@ -314,6 +325,7 @@ where
     }
 }
 
+/// Positions with boolean type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BooleanPosition {
     E3,
@@ -353,6 +365,7 @@ impl Position for BooleanPosition {
     }
 }
 
+/// Positions with numerical representations of categorical value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CategoryPosition {
     B1,
@@ -396,6 +409,7 @@ impl Position for CategoryPosition {
     }
 }
 
+/// Positions that are always `xx`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UndefinedPotision {
     E4,

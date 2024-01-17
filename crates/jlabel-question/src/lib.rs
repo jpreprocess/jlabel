@@ -9,22 +9,43 @@ use position::{
 
 use jlabel::Label;
 
+/// Errors from jlabel-question.
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
+    /// Failed to split given pattern to prefix,target, and suffix
     #[error("Failed splitting")]
     FailSplitting,
+
+    /// Some patterns are pointing at position different from
+    /// which the first pattern is pointing at.
     #[error("Position mismatch")]
     PositionMismatch,
+
+    /// The extracted position prefix/suffix did not match
+    /// any of the possible patterns.
     #[error("Invalid position")]
     InvalidPosition,
+
+    /// The provided pattern or range is empty, so jlabel-question cannot parse it.
     #[error("Empty patterns or range")]
     Empty,
+
+    /// The range is incontinuous or not arranged in ascending order.
     #[error("Incontinuous range")]
     IncontinuousRange,
+
+    /// Failed to parse integer field in a pattern containing wildcard.
+    /// This might result from incorrect number of wildcards.
     #[error("Failed wildcard: {0}")]
     FailWildcard(ParseIntError),
+
+    /// Failed to parse integer field in a pattern without wildcard.
+    /// This might result from incorrect position of wildcard such as `1?2`.
     #[error("Failed literal: {0}")]
     FailLiteral(ParseIntError),
+
+    /// Failed to parse boolean field.
+    /// Boolean fields must be either `0` or `1` (except for `xx` which means empty).
     #[error("Invalid boolean: {0}")]
     InvalidBoolean(String),
 }
@@ -61,7 +82,7 @@ macro_rules! match_position {
     };
 }
 
-/// Parses question patterns in string, and if succeeds, returns the parsed question (AllQuestion).
+/// Parses question patterns in string, and if succeeds, returns the parsed question ([`AllQuestion`]).
 ///
 /// Here is the necessary condition for the pattern to succeed in parsing,
 /// but some questions may not succeed even if they fulfill these requirements.
@@ -109,13 +130,22 @@ pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
     )
 }
 
+/// A main structure representing question.
+///
+/// This can be created from slice of strings using [`question`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AllQuestion {
+    /// Question about phone fields of full-context label
     Phone(Question<PhonePosition>),
+    /// Question about signed integer fields of full-context label
     SignedRange(Question<SignedRangePosition>),
+    /// Question about unsigned integer fields of full-context label
     UnsignedRange(Question<UnsignedRangePosition>),
+    /// Question about boolean fields of full-context label
     Boolean(Question<BooleanPosition>),
+    /// Question about numerical categorical fields of full-context label
     Category(Question<CategoryPosition>),
+    /// Question about undefined (always `xx`) fields of full-context label
     Undefined(Question<UndefinedPotision>),
 }
 
@@ -135,6 +165,9 @@ impl AllQuestion {
     }
 }
 
+/// An inner structure representing a pair of position and range.
+///
+/// Used in variants of [`AllQuestion`]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Question<P: Position> {
     pub position: P,
