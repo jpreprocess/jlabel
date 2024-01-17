@@ -5,6 +5,10 @@ members = ["crates/*"]
 [workspace.package]
 version = "0.1.0"
 rust-version = "1.65.0"
+license = "BSD-3-Clause"
+repository = "https://github.com/jpreprocess/jlabel"
+keywords = ["tts", "openjtalk", "library"]
+categories = ["text-processing"]
 
 [workspace.dependencies]
 jlabel = { path = "crates/jlabel", version = "0.1.0" }

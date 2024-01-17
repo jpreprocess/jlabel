@@ -1,10 +1,16 @@
 [package]
 name = "jlabel"
 edition = "2021"
+description = "Full-context label structure and parser/serializer from/to String"
+
+documentation = "https://docs.rs/jlabel-question"
 
 version.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [dependencies]
 thiserror = "1.0.56"
-
