@@ -52,43 +52,45 @@ fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
     Some((&pattern[..start], &pattern[start..end], &pattern[end..]))
 }
 
-macro_rules! question_arm {
-    ($name:ident, $position:expr, $triplets:expr) => {
-        if $triplets.len() == 1 && $triplets[0].1 == "xx" {
-            Ok(AllQuestion::$name(Question::new_xx($position)))
-        } else {
-            let range =
-                $position.range(&$triplets.into_iter().map(|(_, r, _)| r).collect::<Vec<_>>())?;
-            Ok(AllQuestion::$name(Question::new($position, range)))
+macro_rules! match_position {
+    ($position:expr, $ranges:expr, [$($name:ident),*]) => {
+        match $position {
+            $(
+                AllPosition::$name(position) => Ok(AllQuestion::$name(Question::new(position, $ranges)?)),
+            )*
         }
     };
 }
 
 pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
-    let mut triplets = Vec::new();
-    for pattern in patterns {
-        triplets.push(split_pattern(pattern).ok_or(ParseError::FailSplitting)?);
+    let [first, rest @ ..] = patterns else {
+        return Err(ParseError::Empty);
+    };
+    let (prefix, range, suffix) = split_pattern(first).ok_or(ParseError::FailSplitting)?;
+
+    let mut ranges = Vec::with_capacity(patterns.len());
+    ranges.push(range);
+
+    for pattern in rest {
+        let (pre, range, suf) = split_pattern(pattern).ok_or(ParseError::FailSplitting)?;
+        if pre != prefix || suf != suffix {
+            return Err(ParseError::PositionMismatch);
+        }
+        ranges.push(range);
     }
 
-    let (prefix, _, suffix) = triplets.first().ok_or(ParseError::Empty)?;
-    if !triplets
-        .iter()
-        .all(|(pre, _, post)| pre == prefix && post == suffix)
-    {
-        return Err(ParseError::PositionMismatch);
-    }
-
-    let position = position(prefix, suffix).ok_or(ParseError::InvalidPosition)?;
-
-    use AllPosition::*;
-    match position {
-        Phone(position) => question_arm!(Phone, position, triplets),
-        SignedRange(position) => question_arm!(SignedRange, position, triplets),
-        UnsignedRange(position) => question_arm!(UnsignedRange, position, triplets),
-        Boolean(position) => question_arm!(Boolean, position, triplets),
-        Category(position) => question_arm!(Category, position, triplets),
-        Undefined(position) => question_arm!(Undefined, position, triplets),
-    }
+    match_position!(
+        position(prefix, suffix).ok_or(ParseError::InvalidPosition)?,
+        &ranges,
+        [
+            Phone,
+            SignedRange,
+            UnsignedRange,
+            Boolean,
+            Category,
+            Undefined
+        ]
+    )
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -121,17 +123,16 @@ pub struct Question<P: Position> {
 }
 
 impl<P: Position> Question<P> {
-    pub fn new(position: P, range: P::Range) -> Self {
-        Self {
-            position,
-            range: Some(range),
-        }
-    }
-
-    pub fn new_xx(position: P) -> Self {
-        Self {
-            position,
-            range: None,
+    pub fn new(position: P, ranges: &[&str]) -> Result<Self, ParseError> {
+        match ranges {
+            ["xx"] => Ok(Self {
+                range: None,
+                position,
+            }),
+            ranges => Ok(Self {
+                range: Some(position.range(ranges)?),
+                position,
+            }),
         }
     }
 
