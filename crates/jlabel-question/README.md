@@ -1,6 +1,6 @@
 # jlabel-question
 
-Full-context label question parser and matcher.
+Parser and matcher of htsvoice full-context-label questions.
 
 ## Usage
 

@@ -1,7 +1,7 @@
 [package]
 name = "jlabel-question"
 edition = "2021"
-description = "Full-context label question parser and matcher"
+description = "HTS-style full-context label question parser and matcher"
 
 documentation = "https://docs.rs/jlabel-question"
 
