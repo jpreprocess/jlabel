@@ -1,6 +1,6 @@
 # jlabel
 
-Full-context label structure and parser/serializer to/from String.
+Full-context label structure and parser/serializer from/to String.
 
 ## Usage
 
