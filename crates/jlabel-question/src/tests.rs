@@ -1,15 +1,5 @@
-use crate::{
-    question::{
-        position::{
-            BooleanPosition, CategoryPosition, PhonePosition, SignedRangePosition,
-            UndefinedPotision, UnsignedRangePosition,
-        },
-        question, AllQuestion, Question,
-    },
-    Label, Mora, Phoneme, Utterance, Word,
-};
-
-use super::split_pattern;
+use super::*;
+use jlabel::{Label, Mora, Phoneme, Utterance, Word};
 
 #[test]
 fn splitter() {
@@ -152,8 +142,6 @@ fn all_query() {
             mora_count: 10,
         },
     };
-
-    use crate::question::position::*;
 
     for position in [
         PhonePosition::P1,

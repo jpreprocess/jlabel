@@ -1,9 +1,11 @@
-[package]
-name = "jlabel"
-version = "0.1.0"
-edition = "2021"
+[workspace]
+resolver = "2"
+members = ["crates/*"]
 
+[workspace.package]
+version = "0.1.0"
 rust-version = "1.65.0"
 
-[dependencies]
-thiserror = "1.0.56"
+[workspace.dependencies]
+jlabel = { path = "crates/jlabel" }
+jlabel-question = { path = "crates/jlabel-question" }

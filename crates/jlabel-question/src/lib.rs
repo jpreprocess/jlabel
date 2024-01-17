@@ -7,7 +7,7 @@ use position::{
     SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
 };
 
-use crate::Label;
+use jlabel::Label;
 
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {

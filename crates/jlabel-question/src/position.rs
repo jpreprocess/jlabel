@@ -473,12 +473,7 @@ impl Position for UndefinedPotision {
 
 #[cfg(test)]
 mod tests {
-    use crate::question::{
-        position::{extend_range, range_u8},
-        ParseError,
-    };
-
-    use super::range_i8;
+    use super::*;
 
     #[test]
     fn parse_i8_range() {

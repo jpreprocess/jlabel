@@ -4,11 +4,11 @@ use std::{
     ops::Range,
 };
 
-use jlabel::{question, AllQuestion};
+use jlabel_question::{question, AllQuestion};
 
 #[test]
 fn parse_all_questions() {
-    let file = File::open("tests/questions/questions.hed").unwrap();
+    let file = File::open("tests/questions.hed").unwrap();
     let reader = BufReader::new(file);
 
     for line in reader.lines() {
