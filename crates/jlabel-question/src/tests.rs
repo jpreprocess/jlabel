@@ -3,10 +3,14 @@ use jlabel::{Label, Mora, Phoneme, Utterance, Word};
 
 #[test]
 fn splitter() {
-    assert_eq!(split_pattern("a^*"), Some(("", "a", "^*")));
-    assert_eq!(split_pattern("*/A:-??+*"), Some(("*/A:", "-??", "+*")));
-    assert_eq!(split_pattern("*|?+*"), Some(("*|", "?", "+*")));
-    assert_eq!(split_pattern("*-1"), Some(("*-", "1", "")));
+    assert_eq!(split_pattern("a^*").unwrap(), ("", "a", "^*"));
+    assert_eq!(split_pattern("*/A:-??+*").unwrap(), ("*/A:", "-??", "+*"));
+    assert_eq!(split_pattern("*|?+*").unwrap(), ("*|", "?", "+*"));
+    assert_eq!(split_pattern("*-1").unwrap(), ("*-", "1", ""));
+
+    assert!(split_pattern("*").is_none());
+    assert!(split_pattern(":*").is_none());
+    assert!(split_pattern("*/A:*").is_none());
 }
 
 #[test]

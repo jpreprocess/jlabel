@@ -30,10 +30,6 @@ pub enum ParseError {
 }
 
 fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
-    if !pattern.len() < 4 {
-        return None;
-    }
-
     let start = if pattern.starts_with("*/") {
         4
     } else if pattern.starts_with('*') {
@@ -42,12 +38,15 @@ fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
         0
     };
     let end = if pattern.ends_with(":*") {
-        pattern.len() - 4
+        pattern.len().checked_sub(4)?
     } else if pattern.ends_with('*') {
-        pattern.len() - 2
+        pattern.len().checked_sub(2)?
     } else {
         pattern.len()
     };
+    if start > end {
+        return None;
+    }
 
     Some((&pattern[..start], &pattern[start..end], &pattern[end..]))
 }
