@@ -1,5 +1,7 @@
 use std::{fmt::Debug, ops::Range};
 
+use crate::Label;
+
 use super::ParseError;
 
 pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
@@ -87,15 +89,28 @@ pub enum AllPosition {
     Undefined(UndefinedPotision),
 }
 
+macro_rules! as_ref_map {
+    ($label:ident.$block:ident.$prop:ident) => {
+        $label.$block.as_ref().map(|b| &b.$prop)
+    };
+}
+
+macro_rules! as_ref_and_then {
+    ($label:ident.$block:ident.$prop:ident) => {
+        $label.$block.as_ref().and_then(|b| b.$prop.as_ref())
+    };
+}
+
 pub trait Position {
     type Target;
     type Range;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError>;
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target>;
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PhonePosition {
     P1,
     P2,
@@ -112,12 +127,22 @@ impl Position for PhonePosition {
         Ok(ranges.iter().map(|s| s.to_string()).collect())
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::P1 => label.phoneme.p1.as_ref(),
+            Self::P2 => label.phoneme.p2.as_ref(),
+            Self::P3 => label.phoneme.c.as_ref(),
+            Self::P4 => label.phoneme.n1.as_ref(),
+            Self::P5 => label.phoneme.n2.as_ref(),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SignedRangePosition {
     A1,
 }
@@ -134,6 +159,12 @@ impl Position for SignedRangePosition {
             extend_range(&mut range, r)?;
         }
         Ok(range)
+    }
+
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::A1 => as_ref_map!(label.mora.relative_accent_position),
+        }
     }
 
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
@@ -161,7 +192,7 @@ fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
     Ok(range)
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnsignedRangePosition {
     A2,
     A3,
@@ -213,6 +244,38 @@ impl Position for UnsignedRangePosition {
         Ok(range)
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::A2 => as_ref_map!(label.mora.position_forward),
+            Self::A3 => as_ref_map!(label.mora.position_backward),
+            Self::E1 => as_ref_map!(label.accent_phrase_prev.mora_count),
+            Self::E2 => as_ref_map!(label.accent_phrase_prev.accent_position),
+            Self::F1 => as_ref_map!(label.accent_phrase_curr.mora_count),
+            Self::F2 => as_ref_map!(label.accent_phrase_curr.accent_position),
+            Self::F5 => as_ref_map!(label.accent_phrase_curr.accent_phrase_position_forward),
+            Self::F6 => as_ref_map!(label.accent_phrase_curr.accent_phrase_position_backward),
+            Self::F7 => as_ref_map!(label.accent_phrase_curr.mora_position_forward),
+            Self::F8 => as_ref_map!(label.accent_phrase_curr.mora_position_backward),
+            Self::G1 => as_ref_map!(label.accent_phrase_next.mora_count),
+            Self::G2 => as_ref_map!(label.accent_phrase_next.accent_position),
+            Self::H1 => as_ref_map!(label.breath_group_prev.accent_phrase_count),
+            Self::H2 => as_ref_map!(label.breath_group_prev.mora_count),
+            Self::I1 => as_ref_map!(label.breath_group_curr.accent_phrase_count),
+            Self::I2 => as_ref_map!(label.breath_group_curr.mora_count),
+            Self::I3 => as_ref_map!(label.breath_group_curr.breath_group_position_forward),
+            Self::I4 => as_ref_map!(label.breath_group_curr.breath_group_position_backward),
+            Self::I5 => as_ref_map!(label.breath_group_curr.accent_phrase_position_forward),
+            Self::I6 => as_ref_map!(label.breath_group_curr.accent_phrase_position_backward),
+            Self::I7 => as_ref_map!(label.breath_group_curr.mora_position_forward),
+            Self::I8 => as_ref_map!(label.breath_group_curr.mora_position_backward),
+            Self::J1 => as_ref_map!(label.breath_group_next.accent_phrase_count),
+            Self::J2 => as_ref_map!(label.breath_group_next.mora_count),
+            Self::K1 => Some(&label.utterance.breath_group_count),
+            Self::K2 => Some(&label.utterance.accent_phrase_count),
+            Self::K3 => Some(&label.utterance.mora_count),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
@@ -251,7 +314,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BooleanPosition {
     E3,
     E5,
@@ -275,12 +338,22 @@ impl Position for BooleanPosition {
         }
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::E3 => as_ref_map!(label.accent_phrase_prev.is_interrogative),
+            Self::E5 => as_ref_and_then!(label.accent_phrase_prev.is_pause_insertion),
+            Self::F3 => as_ref_map!(label.accent_phrase_curr.is_interrogative),
+            Self::G3 => as_ref_map!(label.accent_phrase_next.is_interrogative),
+            Self::G5 => as_ref_and_then!(label.accent_phrase_next.is_pause_insertion),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range == target
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CategoryPosition {
     B1,
     B2,
@@ -304,12 +377,26 @@ impl Position for CategoryPosition {
             .collect()
     }
 
+    fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
+        match self {
+            Self::B1 => as_ref_and_then!(label.word_prev.pos),
+            Self::B2 => as_ref_and_then!(label.word_prev.ctype),
+            Self::B3 => as_ref_and_then!(label.word_prev.cform),
+            Self::C1 => as_ref_and_then!(label.word_curr.pos),
+            Self::C2 => as_ref_and_then!(label.word_curr.ctype),
+            Self::C3 => as_ref_and_then!(label.word_curr.cform),
+            Self::D1 => as_ref_and_then!(label.word_next.pos),
+            Self::D2 => as_ref_and_then!(label.word_next.ctype),
+            Self::D3 => as_ref_and_then!(label.word_next.cform),
+        }
+    }
+
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool {
         range.contains(target)
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UndefinedPotision {
     E4,
     F4,
@@ -324,6 +411,10 @@ impl Position for UndefinedPotision {
         Ok(())
     }
 
+    fn get<'a>(&self, _: &'a Label) -> Option<&'a Self::Target> {
+        None
+    }
+
     fn test(&self, _: &Self::Range, _: &Self::Target) -> bool {
         true
     }
@@ -331,12 +422,7 @@ impl Position for UndefinedPotision {
 
 #[cfg(test)]
 mod tests {
-    use crate::question::{
-        position::{extend_range, range_u8},
-        ParseError,
-    };
-
-    use super::range_i8;
+    use super::*;
 
     #[test]
     fn parse_i8_range() {
