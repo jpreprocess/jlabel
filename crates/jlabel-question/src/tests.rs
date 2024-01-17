@@ -314,12 +314,12 @@ fn all_query() {
         UnsignedRangePosition::J2,
     ] {
         let q = AllQuestion::UnsignedRange(Question {
-            position: position,
+            position,
             range: None,
         });
         assert!(q.test(&nones));
         let q = AllQuestion::UnsignedRange(Question {
-            position: position,
+            position,
             range: Some(0..1),
         });
         assert!(q.test(&zeros));
