@@ -74,6 +74,17 @@ fn parse_question() {
 }
 
 #[test]
+fn parse_question_err() {
+    use ParseError::*;
+
+    assert_eq!(question(&[]), Err(Empty));
+    assert_eq!(question(&["*/A:*"]), Err(FailSplitting));
+    assert_eq!(question(&["*/A:-??+*", "*/A:*"]), Err(FailSplitting));
+    assert_eq!(question(&["*/A:-??+*", "*/B:0+*"]), Err(PositionMismatch));
+    assert_eq!(question(&["*/A:0/B:*"]), Err(InvalidPosition));
+}
+
+#[test]
 fn query() {
     // Note: this Label is created randomly, and is invalid.
     let label = Label {
@@ -172,17 +183,17 @@ fn all_query() {
         CategoryPosition::D2,
         CategoryPosition::D3,
     ] {
-        let q = Question {
+        let q = AllQuestion::Category(Question {
             position,
             range: None,
-        };
+        });
         assert!(q.test(&label));
     }
 
-    let q = Question {
+    let q = AllQuestion::SignedRange(Question {
         position: SignedRangePosition::A1,
         range: None,
-    };
+    });
     assert!(q.test(&label));
 
     for position in [
@@ -211,15 +222,15 @@ fn all_query() {
         UnsignedRangePosition::J1,
         UnsignedRangePosition::J2,
     ] {
-        let q = Question {
+        let q = AllQuestion::UnsignedRange(Question {
             position: position.clone(),
             range: None,
-        };
+        });
         assert!(q.test(&label));
-        let q = Question {
+        let q = AllQuestion::UnsignedRange(Question {
             position: position.clone(),
             range: Some(0..1),
-        };
+        });
         assert!(!q.test(&label));
     }
 
@@ -230,32 +241,32 @@ fn all_query() {
         BooleanPosition::G3,
         BooleanPosition::G5,
     ] {
-        let q = Question {
+        let q = AllQuestion::Boolean(Question {
             position,
             range: None,
-        };
+        });
         assert!(q.test(&label));
     }
 
-    let q = Question {
+    let q = AllQuestion::UnsignedRange(Question {
         position: UnsignedRangePosition::K1,
         range: Some(3..4),
-    };
+    });
     assert!(q.test(&label));
-    let q = Question {
+    let q = AllQuestion::UnsignedRange(Question {
         position: UnsignedRangePosition::K2,
         range: Some(6..7),
-    };
+    });
     assert!(q.test(&label));
-    let q = Question {
+    let q = AllQuestion::UnsignedRange(Question {
         position: UnsignedRangePosition::K3,
         range: Some(5..11),
-    };
+    });
     assert!(q.test(&label));
 
-    let q = Question {
+    let q = AllQuestion::Undefined(Question {
         position: UndefinedPotision::E4,
         range: None,
-    };
+    });
     assert!(q.test(&label));
 }
