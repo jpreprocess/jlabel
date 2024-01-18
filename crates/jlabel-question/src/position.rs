@@ -85,6 +85,7 @@ pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AllPosition {
     Phone(PhonePosition),
     SignedRange(SignedRangePosition),
