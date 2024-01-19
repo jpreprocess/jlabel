@@ -16,7 +16,7 @@ pub enum ParseError {
     #[error("Position mismatch")]
     PositionMismatch,
     #[error("Invalid position")]
-    InvalidPosition(PositionError),
+    InvalidPosition(#[from] PositionError),
     #[error("Empty patterns or range")]
     Empty,
     #[error("Incontinuous range")]
@@ -45,11 +45,11 @@ pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
     };
     let mut ranges = Vec::with_capacity(patterns.len());
 
-    let (position, range) = estimate_position(first).map_err(ParseError::InvalidPosition)?;
+    let (position, range) = estimate_position(first)?;
     ranges.push(range);
 
     for pattern in rest {
-        let (pos, range) = estimate_position(pattern).map_err(ParseError::InvalidPosition)?;
+        let (pos, range) = estimate_position(pattern)?;
         if pos != position {
             return Err(ParseError::PositionMismatch);
         }
