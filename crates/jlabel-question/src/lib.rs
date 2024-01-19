@@ -40,24 +40,25 @@ macro_rules! match_position {
 }
 
 pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
-    let [first, rest @ ..] = patterns else {
-        return Err(ParseError::Empty);
-    };
+    let mut position = None;
     let mut ranges = Vec::with_capacity(patterns.len());
 
-    let (position, range) = estimate_position(first)?;
-    ranges.push(range);
-
-    for pattern in rest {
+    for pattern in patterns {
         let (pos, range) = estimate_position(pattern)?;
-        if pos != position {
-            return Err(ParseError::PositionMismatch);
+
+        if let Some(position) = position {
+            if pos != position {
+                return Err(ParseError::PositionMismatch);
+            }
+        } else {
+            position = Some(pos);
         }
+
         ranges.push(range);
     }
 
     match_position!(
-        position,
+        position.ok_or(ParseError::Empty)?,
         &ranges,
         [
             Phone,
