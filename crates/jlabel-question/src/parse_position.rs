@@ -345,7 +345,7 @@ mod tests {
         parse_position::{estimate_position, PositionError},
         position::{
             AllPosition::*, BooleanPosition::*, CategoryPosition::*, PhonePosition::*,
-            SignedRangePosition::*, UnsignedRangePosition::*,
+            SignedRangePosition::*, UndefinedPotision::*, UnsignedRangePosition::*,
         },
     };
 
@@ -358,6 +358,9 @@ mod tests {
         assert_eq!(estimate_position("*-1"), Ok((UnsignedRange(K3), "1")));
         assert_eq!(estimate_position("*_42/I:*"), Ok((UnsignedRange(H2), "42")));
         assert_eq!(estimate_position("*/B:17-*"), Ok((Category(B1), "17")));
+        assert_eq!(estimate_position("*_xx-*"), Ok((Undefined(E4), "xx")));
+        assert_eq!(estimate_position("*_xx@*"), Ok((Undefined(F4), "xx")));
+        assert_eq!(estimate_position("*_xx_*"), Ok((Undefined(G4), "xx")));
     }
 
     #[test]
@@ -375,6 +378,15 @@ mod tests {
         assert_eq!(
             estimate_position("*/B:0+*"),
             Err(PositionError::SuffixVerifyError)
+        );
+
+        assert_eq!(
+            estimate_position("*/B :0+*"),
+            Err(PositionError::NoMatchingPosition)
+        );
+        assert_eq!(
+            estimate_position("*_0/Z:*"),
+            Err(PositionError::NoMatchingPosition)
         );
 
         assert_eq!(
@@ -397,6 +409,7 @@ mod tests {
         assert_eq!(estimate_position("*#1*"), Ok((Boolean(F3), "1")));
         assert_eq!(estimate_position("*%1*"), Ok((Boolean(G3), "1")));
         assert_eq!(estimate_position("*_01/C*"), Ok((Category(B3), "01")));
+        assert_eq!(estimate_position("*-1/*"), Ok((Boolean(E5), "1")));
 
         assert_eq!(
             estimate_position("*-1/H:*"),
