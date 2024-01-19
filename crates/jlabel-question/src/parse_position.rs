@@ -9,7 +9,23 @@ use crate::position::UndefinedPotision::*;
 use crate::position::UnsignedRangePosition::*;
 use AllPosition::*;
 
-fn estimate_position(input_pattern: &str) -> Option<(AllPosition, &str)> {
+#[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
+pub enum PositionError {
+    #[error("No matching position found")]
+    NoMatchingPosition,
+    #[error("The first character should be asterisk in this position")]
+    MissingPrefixAsterisk,
+    #[error("The last character should be asterisk in this position")]
+    MissingSuffixAsterisk,
+    #[error("Prefix has unknown sequence")]
+    PrefixVerifyError,
+    #[error("Suffix has unknown sequence")]
+    SuffixVerifyError,
+    #[error("Range is empty")]
+    EmptyRange,
+}
+
+pub fn estimate_position(input_pattern: &str) -> Result<(AllPosition, &str), PositionError> {
     // Trim asterisks
     let (pattern, asterisks) = {
         let mut pattern = input_pattern;
@@ -90,25 +106,23 @@ fn estimate_position(input_pattern: &str) -> Option<(AllPosition, &str)> {
             }
         }
 
-        return None;
+        return Err(PositionError::NoMatchingPosition);
     };
 
     // Check asterisk
-    if match position {
-        Phone(P1) => (false, true),
-        UnsignedRange(K3) => (true, false),
-        _ => (true, true),
-    } != asterisks
-    {
-        return None;
+    if position != Phone(P1) && !asterisks.0 {
+        return Err(PositionError::MissingPrefixAsterisk);
+    }
+    if position != UnsignedRange(K3) && !asterisks.1 {
+        return Err(PositionError::MissingSuffixAsterisk);
     }
 
     let range = generate_range(position, pattern, prefix, suffix)?;
     if range.is_empty() {
-        return None;
+        return Err(PositionError::EmptyRange);
     }
 
-    Some((position, &pattern[range]))
+    Ok((position, &pattern[range]))
 }
 
 fn generate_range(
@@ -116,19 +130,19 @@ fn generate_range(
     pattern: &str,
     prefix: Option<usize>,
     suffix: Option<usize>,
-) -> Option<Range<usize>> {
+) -> Result<Range<usize>, PositionError> {
     let prefix = prefix.map(|i| i + 1).unwrap_or(0);
     let suffix = suffix.unwrap_or(pattern.len());
 
     let (rprefix, rsuffix) = reverse_hint(position);
     if !rprefix.ends_with(&pattern[..prefix]) {
-        return None;
+        return Err(PositionError::PrefixVerifyError);
     }
     if !rsuffix.starts_with(&pattern[suffix..]) {
-        return None;
+        return Err(PositionError::SuffixVerifyError);
     }
 
-    Some(prefix..suffix)
+    Ok(prefix..suffix)
 }
 
 fn multi_forward(pattern: &str, prefix: usize) -> Option<AllPosition> {
@@ -337,31 +351,56 @@ mod tests {
 
     #[test]
     fn basic() {
-        assert_eq!(estimate_position("a^*"), Some((Phone(P1), "a")));
-        assert_eq!(estimate_position("*/A:-1+*"), Some((SignedRange(A1), "-1")));
-        assert_eq!(
-            estimate_position("*/A:-??+*"),
-            Some((SignedRange(A1), "-??"))
-        );
-        assert_eq!(estimate_position("*|?+*"), Some((UnsignedRange(I7), "?")));
-        assert_eq!(estimate_position("*-1"), Some((UnsignedRange(K3), "1")));
-        assert_eq!(
-            estimate_position("*_42/I:*"),
-            Some((UnsignedRange(H2), "42"))
-        );
-        assert_eq!(estimate_position("*/B:17-*"), Some((Category(B1), "17")));
+        assert_eq!(estimate_position("a^*"), Ok((Phone(P1), "a")));
+        assert_eq!(estimate_position("*/A:-1+*"), Ok((SignedRange(A1), "-1")));
+        assert_eq!(estimate_position("*/A:-??+*"), Ok((SignedRange(A1), "-??")));
+        assert_eq!(estimate_position("*|?+*"), Ok((UnsignedRange(I7), "?")));
+        assert_eq!(estimate_position("*-1"), Ok((UnsignedRange(K3), "1")));
+        assert_eq!(estimate_position("*_42/I:*"), Ok((UnsignedRange(H2), "42")));
+        assert_eq!(estimate_position("*/B:17-*"), Ok((Category(B1), "17")));
+    }
 
-        assert_eq!(estimate_position("*"), None);
-        assert_eq!(estimate_position(":*"), None);
-        assert_eq!(estimate_position("*/A:*"), None);
-        assert_eq!(estimate_position("*/A:0/B:*"), None);
+    #[test]
+    fn basic_fail() {
+        assert_eq!(estimate_position("*"), Err(PositionError::EmptyRange));
+        assert_eq!(
+            estimate_position(":*"),
+            Err(PositionError::NoMatchingPosition)
+        );
+        assert_eq!(estimate_position("*/A:*"), Err(PositionError::EmptyRange));
+        assert_eq!(
+            estimate_position("*/A:0/B:*"),
+            Err(PositionError::SuffixVerifyError)
+        );
+        assert_eq!(
+            estimate_position("*/B:0+*"),
+            Err(PositionError::SuffixVerifyError)
+        );
+
+        assert_eq!(
+            estimate_position("a^"),
+            Err(PositionError::MissingSuffixAsterisk)
+        );
+        assert_eq!(
+            estimate_position("/B:17-*"),
+            Err(PositionError::MissingPrefixAsterisk)
+        );
+        assert_eq!(
+            // K3
+            estimate_position("-1"),
+            Err(PositionError::MissingPrefixAsterisk)
+        );
     }
 
     #[test]
     fn advanced() {
-        assert_eq!(estimate_position("*-1/H:*"), None);
-        assert_eq!(estimate_position("*#1*"), Some((Boolean(F3), "1")));
-        assert_eq!(estimate_position("*%1*"), Some((Boolean(G3), "1")));
-        assert_eq!(estimate_position("*_01/C*"), Some((Category(B3), "01")));
+        assert_eq!(estimate_position("*#1*"), Ok((Boolean(F3), "1")));
+        assert_eq!(estimate_position("*%1*"), Ok((Boolean(G3), "1")));
+        assert_eq!(estimate_position("*_01/C*"), Ok((Category(B3), "01")));
+
+        assert_eq!(
+            estimate_position("*-1/H:*"),
+            Err(PositionError::PrefixVerifyError)
+        );
     }
 }
