@@ -26,88 +26,10 @@ pub enum PositionError {
 }
 
 pub fn estimate_position(input_pattern: &str) -> Result<(AllPosition, &str), PositionError> {
-    // Trim asterisks
-    let (pattern, asterisks) = {
-        let mut pattern = input_pattern;
-        let mut stars = (false, false);
-        if pattern.starts_with('*') {
-            pattern = &pattern[1..];
-            stars.0 = true;
-        }
-        if pattern.ends_with('*') {
-            pattern = &pattern[..pattern.len() - 1];
-            stars.1 = true;
-        }
-        (pattern, stars)
-    };
+    let (pattern, asterisks) = trim_asterisk(input_pattern);
+    let (prefix, suffix) = find_delim_marks(pattern);
 
-    // Find symbols
-    let (prefix, suffix) = {
-        // Match to the last char of prefix
-        // /A:
-        //   ^
-        let prefix = pattern
-            .bytes()
-            .position(|b| "!#%&+-=@^_|:".contains(b as char));
-
-        // Match to the first char of suffix
-        // /A:
-        // ^
-        let suffix = pattern
-            .bytes()
-            .rev()
-            .position(|b| "!#%&+-=@^_|/".contains(b as char))
-            .map(|i| pattern.len() - i - 1);
-
-        if let (Some(prefix), Some(suffix)) = (prefix, suffix) {
-            if prefix < suffix {
-                (Some(prefix), Some(suffix))
-            } else if prefix == pattern.len() - 1 {
-                (None, Some(suffix))
-            } else {
-                (Some(prefix), None)
-            }
-        } else {
-            (prefix, suffix)
-        }
-    };
-
-    let position = 'position: {
-        if suffix.is_none() && !asterisks.1 {
-            // no suffix and no `*` at the end of pattern
-            break 'position UnsignedRange(K3);
-        }
-
-        if let Some(prefix) = prefix {
-            if let Some(position) = multi_forward(pattern, prefix) {
-                // A1 must be captured here; A1 is not distinguishable in combination_match
-                break 'position position;
-            }
-            if let Some(position) = single_forward(pattern.as_bytes()[prefix] as char) {
-                break 'position position;
-            }
-        }
-
-        if let Some(suffix) = suffix {
-            if let Some(position) = multi_reverse(pattern, suffix) {
-                break 'position position;
-            }
-            if let Some(position) = single_reverse(pattern.as_bytes()[suffix] as char) {
-                break 'position position;
-            }
-        }
-
-        if let (Some(prefix), Some(suffix)) = (prefix, suffix) {
-            if let Some(position) = combination_match(
-                pattern.as_bytes()[prefix] as char,
-                pattern.as_bytes()[suffix] as char,
-            ) {
-                break 'position position;
-            }
-        }
-
-        return Err(PositionError::NoMatchingPosition);
-    };
+    let position = match_position(pattern, prefix, suffix, asterisks)?;
 
     // Check asterisk
     if position != Phone(P1) && !asterisks.0 {
@@ -123,6 +45,92 @@ pub fn estimate_position(input_pattern: &str) -> Result<(AllPosition, &str), Pos
     }
 
     Ok((position, &pattern[range]))
+}
+
+fn find_delim_marks(pattern: &str) -> (Option<usize>, Option<usize>) {
+    // Match to the last char of prefix
+    // /A:
+    //   ^
+    let prefix = pattern
+        .bytes()
+        .position(|b| "!#%&+-=@^_|:".contains(b as char));
+
+    // Match to the first char of suffix
+    // /A:
+    // ^
+    let suffix = pattern
+        .bytes()
+        .rev()
+        .position(|b| "!#%&+-=@^_|/".contains(b as char))
+        .map(|i| pattern.len() - i - 1);
+
+    if let (Some(prefix), Some(suffix)) = (prefix, suffix) {
+        if prefix < suffix {
+            (Some(prefix), Some(suffix))
+        } else if prefix == pattern.len() - 1 {
+            (None, Some(suffix))
+        } else {
+            (Some(prefix), None)
+        }
+    } else {
+        (prefix, suffix)
+    }
+}
+
+fn trim_asterisk(input_pattern: &str) -> (&str, (bool, bool)) {
+    let mut pattern = input_pattern;
+    let mut stars = (false, false);
+    if pattern.starts_with('*') {
+        pattern = &pattern[1..];
+        stars.0 = true;
+    }
+    if pattern.ends_with('*') {
+        pattern = &pattern[..pattern.len() - 1];
+        stars.1 = true;
+    }
+    (pattern, stars)
+}
+
+fn match_position(
+    pattern: &str,
+    prefix: Option<usize>,
+    suffix: Option<usize>,
+    asterisks: (bool, bool),
+) -> Result<AllPosition, PositionError> {
+    if suffix.is_none() && !asterisks.1 {
+        // no suffix and no `*` at the end of pattern
+        return Ok(UnsignedRange(K3));
+    }
+
+    if let Some(prefix) = prefix {
+        if let Some(position) = multi_forward(pattern, prefix) {
+            // A1 must be captured here; A1 is not distinguishable in combination_match
+            return Ok(position);
+        }
+        if let Some(position) = single_forward(pattern.as_bytes()[prefix] as char) {
+            return Ok(position);
+        }
+    }
+
+    if let Some(suffix) = suffix {
+        if let Some(position) = multi_reverse(pattern, suffix) {
+            return Ok(position);
+        }
+        if let Some(position) = single_reverse(pattern.as_bytes()[suffix] as char) {
+            return Ok(position);
+        }
+    }
+
+    if let (Some(prefix), Some(suffix)) = (prefix, suffix) {
+        if let Some(position) = combination_match(
+            pattern.as_bytes()[prefix] as char,
+            pattern.as_bytes()[suffix] as char,
+        ) {
+            return Ok(position);
+        }
+    }
+
+    Err(PositionError::NoMatchingPosition)
 }
 
 fn generate_range(
