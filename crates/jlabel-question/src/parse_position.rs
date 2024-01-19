@@ -342,11 +342,11 @@ fn reverse_hint(position: AllPosition) -> (&'static str, &'static str) {
 #[cfg(test)]
 mod tests {
     use crate::{
+        parse_position::{estimate_position, PositionError},
         position::{
             AllPosition::*, BooleanPosition::*, CategoryPosition::*, PhonePosition::*,
             SignedRangePosition::*, UnsignedRangePosition::*,
         },
-        parse_position::{estimate_position, PositionError},
     };
 
     #[test]
