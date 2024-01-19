@@ -103,20 +103,13 @@ fn match_position(
     }
 
     if let Some(prefix) = prefix {
-        if let Some(position) = multi_forward(pattern, prefix) {
-            // A1 must be captured here; A1 is not distinguishable in combination_match
-            return Ok(position);
-        }
-        if let Some(position) = single_forward(pattern.as_bytes()[prefix] as char) {
+        if let Some(position) = prefix_match(&pattern[..=prefix]) {
             return Ok(position);
         }
     }
 
     if let Some(suffix) = suffix {
-        if let Some(position) = multi_reverse(pattern, suffix) {
-            return Ok(position);
-        }
-        if let Some(position) = single_reverse(pattern.as_bytes()[suffix] as char) {
+        if let Some(position) = suffix_match(&pattern[suffix..]) {
             return Ok(position);
         }
     }
@@ -153,65 +146,55 @@ fn generate_range(
     Ok(prefix..suffix)
 }
 
-fn multi_forward(pattern: &str, prefix: usize) -> Option<AllPosition> {
-    if prefix < 1 {
-        return None;
-    }
-    match &pattern[prefix - 1..=prefix] {
-        "A:" => Some(SignedRange(A1)),
-        "B:" => Some(Category(B1)),
-        "C:" => Some(Category(C1)),
-        "D:" => Some(Category(D1)),
-        "E:" => Some(UnsignedRange(E1)),
-        "F:" => Some(UnsignedRange(F1)),
-        "G:" => Some(UnsignedRange(G1)),
-        "H:" => Some(UnsignedRange(H1)),
-        "I:" => Some(UnsignedRange(I1)),
-        "J:" => Some(UnsignedRange(J1)),
-        "K:" => Some(UnsignedRange(K1)),
+fn prefix_match(prefix: &str) -> Option<AllPosition> {
+    let mut bytes = prefix.bytes();
+    match bytes.next_back()? {
+        b'^' => Some(Phone(P2)),
+        b'=' => Some(Phone(P5)),
+        b'!' => Some(Boolean(E3)),
+        b'#' => Some(Boolean(F3)),
+        b'%' => Some(Boolean(G3)),
+        b'&' => Some(UnsignedRange(I5)),
+        b':' => match bytes.next_back()? {
+            b'A' => Some(SignedRange(A1)),
+            b'B' => Some(Category(B1)),
+            b'C' => Some(Category(C1)),
+            b'D' => Some(Category(D1)),
+            b'E' => Some(UnsignedRange(E1)),
+            b'F' => Some(UnsignedRange(F1)),
+            b'G' => Some(UnsignedRange(G1)),
+            b'H' => Some(UnsignedRange(H1)),
+            b'I' => Some(UnsignedRange(I1)),
+            b'J' => Some(UnsignedRange(J1)),
+            b'K' => Some(UnsignedRange(K1)),
+            _ => None,
+        },
         _ => None,
     }
 }
-
-fn multi_reverse(pattern: &str, suffix: usize) -> Option<AllPosition> {
-    if pattern.len() <= suffix + 1 {
-        return None;
-    }
-    match &pattern[suffix..=suffix + 1] {
-        "/A" => Some(Phone(P5)),
-        "/B" => Some(UnsignedRange(A3)),
-        "/C" => Some(Category(B3)),
-        "/D" => Some(Category(C3)),
-        "/E" => Some(Category(D3)),
-        "/F" => Some(Boolean(E5)),
-        "/G" => Some(UnsignedRange(F8)),
-        "/H" => Some(Boolean(G5)),
-        "/I" => Some(UnsignedRange(H2)),
-        "/J" => Some(UnsignedRange(I8)),
-        "/K" => Some(UnsignedRange(J2)),
-        _ => None,
-    }
-}
-
-fn single_forward(c: char) -> Option<AllPosition> {
-    match c {
-        '^' => Some(Phone(P2)),
-        '=' => Some(Phone(P5)),
-        '!' => Some(Boolean(E3)),
-        '#' => Some(Boolean(F3)),
-        '%' => Some(Boolean(G3)),
-        '&' => Some(UnsignedRange(I5)),
-        _ => None,
-    }
-}
-fn single_reverse(c: char) -> Option<AllPosition> {
-    match c {
-        '^' => Some(Phone(P1)),
-        '=' => Some(Phone(P4)),
-        '!' => Some(UnsignedRange(E2)),
-        '#' => Some(UnsignedRange(F2)),
-        '%' => Some(UnsignedRange(G2)),
-        '&' => Some(UnsignedRange(I4)),
+fn suffix_match(suffix: &str) -> Option<AllPosition> {
+    let mut bytes = suffix.bytes();
+    match bytes.next()? {
+        b'^' => Some(Phone(P1)),
+        b'=' => Some(Phone(P4)),
+        b'!' => Some(UnsignedRange(E2)),
+        b'#' => Some(UnsignedRange(F2)),
+        b'%' => Some(UnsignedRange(G2)),
+        b'&' => Some(UnsignedRange(I4)),
+        b'/' => match bytes.next()? {
+            b'A' => Some(Phone(P5)),
+            b'B' => Some(UnsignedRange(A3)),
+            b'C' => Some(Category(B3)),
+            b'D' => Some(Category(C3)),
+            b'E' => Some(Category(D3)),
+            b'F' => Some(Boolean(E5)),
+            b'G' => Some(UnsignedRange(F8)),
+            b'H' => Some(Boolean(G5)),
+            b'I' => Some(UnsignedRange(H2)),
+            b'J' => Some(UnsignedRange(I8)),
+            b'K' => Some(UnsignedRange(J2)),
+            _ => None,
+        },
         _ => None,
     }
 }
