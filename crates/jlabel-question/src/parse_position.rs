@@ -23,9 +23,8 @@ pub enum PositionError {
     EmptyRange,
 }
 
-pub fn estimate_position(input_pattern: &str) -> Result<(AllPosition, &str), PositionError> {
-    let (pattern, asterisks) = trim_asterisk(input_pattern);
-    let (prefix, range, suffix) = find_delim_marks(pattern);
+pub fn estimate_position(pattern: &str) -> Result<(AllPosition, &str), PositionError> {
+    let (prefix, range, suffix, asterisks) = find_delim_marks(pattern);
     if range.is_empty() {
         return Err(PositionError::EmptyRange);
     }
@@ -37,7 +36,9 @@ pub fn estimate_position(input_pattern: &str) -> Result<(AllPosition, &str), Pos
     Ok((position, range))
 }
 
-fn find_delim_marks(pattern: &str) -> (&str, &str, &str) {
+fn find_delim_marks(pattern: &str) -> (&str, &str, &str, (bool, bool)) {
+    let (pattern, asterisks) = trim_asterisk(pattern);
+
     // Match to the next char of prefix
     // /A:
     //    ^
@@ -72,11 +73,11 @@ fn find_delim_marks(pattern: &str) -> (&str, &str, &str) {
         &pattern[..prefix],
         &pattern[prefix..suffix],
         &pattern[suffix..],
+        asterisks,
     )
 }
 
-fn trim_asterisk(input_pattern: &str) -> (&str, (bool, bool)) {
-    let mut pattern = input_pattern;
+fn trim_asterisk(mut pattern: &str) -> (&str, (bool, bool)) {
     let mut stars = (false, false);
     if pattern.starts_with('*') {
         pattern = &pattern[1..];
@@ -356,10 +357,7 @@ mod tests {
     #[test]
     fn basic_fail() {
         assert_eq!(estimate_position("*"), Err(PositionError::EmptyRange));
-        assert_eq!(
-            estimate_position(":*"),
-            Err(PositionError::EmptyRange)
-        );
+        assert_eq!(estimate_position(":*"), Err(PositionError::EmptyRange));
         assert_eq!(estimate_position("*/A:*"), Err(PositionError::EmptyRange));
         assert_eq!(
             estimate_position("*/A:0/B:*"),
