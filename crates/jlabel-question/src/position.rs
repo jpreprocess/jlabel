@@ -301,8 +301,9 @@ where
     let merged = ranges
         .into_iter()
         .try_fold(None, |acc: Option<Range<Idx>>, curr| match acc {
+            // By sorting, always acc.start <= curr.start
+            // Only need to check curr's start is continuous with acc's end
             Some(mut acc) if curr.start <= acc.end => {
-                acc.start = acc.start.min(curr.start);
                 acc.end = acc.end.max(curr.end);
                 Ok(Some(acc))
             }
