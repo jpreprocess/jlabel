@@ -298,17 +298,18 @@ where
     Idx: Ord + Copy,
 {
     ranges.sort_unstable_by_key(|range| range.start);
-    ranges
+    let merged = ranges
         .into_iter()
-        .fold(Err(ParseError::Empty), |acc, curr| match acc {
-            Err(ParseError::Empty) => Ok(curr),
-            Ok(mut acc) if curr.start <= acc.end => {
+        .try_fold(None, |acc: Option<Range<Idx>>, curr| match acc {
+            Some(mut acc) if curr.start <= acc.end => {
                 acc.start = acc.start.min(curr.start);
                 acc.end = acc.end.max(curr.end);
-                Ok(acc)
+                Ok(Some(acc))
             }
+            None => Ok(Some(curr)),
             _ => Err(ParseError::IncontinuousRange),
-        })
+        })?;
+    merged.ok_or(ParseError::Empty)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -465,6 +466,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::single_range_in_vec_init)]
     fn merge_ranges_1() {
         assert_eq!(merge_ranges(vec![0..1]), Ok(0..1));
         assert_eq!(merge_ranges(vec![0..1, 1..3]), Ok(0..3));
