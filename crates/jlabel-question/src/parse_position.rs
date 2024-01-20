@@ -107,11 +107,10 @@ impl<'a> PositionSplit<'a> {
             return Ok(position);
         }
 
-        if !self.prefix.is_empty() && !self.suffix.is_empty() {
-            if let Some(position) = combination_match(
-                self.prefix.bytes().next_back().unwrap() as char,
-                self.suffix.bytes().next().unwrap() as char,
-            ) {
+        if let (Some(pchar), Some(schar)) =
+            (self.prefix.bytes().next_back(), self.suffix.bytes().next())
+        {
+            if let Some(position) = combination_match(pchar, schar) {
                 return Ok(position);
             }
         }
@@ -200,67 +199,67 @@ fn suffix_match(suffix: &str) -> Option<AllPosition> {
         _ => None,
     }
 }
-fn combination_match(prefix: char, suffix: char) -> Option<AllPosition> {
+fn combination_match(prefix: u8, suffix: u8) -> Option<AllPosition> {
     match (prefix, suffix) {
-        ('^', '-') => Some(Phone(P2)),
-        ('-', '+') => Some(Phone(P3)),
-        ('+', '=') => Some(Phone(P4)),
-        ('=', '/') => Some(Phone(P5)),
+        // (b'^', b'-') => Some(Phone(P2)),
+        (b'-', b'+') => Some(Phone(P3)),
+        // (b'+', b'=') => Some(Phone(P4)),
+        // (b'=', b'/') => Some(Phone(P5)),
 
-        // (':', '+') => Some(SignedRange(A1)),
-        ('+', '+') => Some(UnsignedRange(A2)),
-        // ('+', '/') => Some(UnsignedRange(A3)),
+        // (b':', b'+') => Some(SignedRange(A1)),
+        (b'+', b'+') => Some(UnsignedRange(A2)),
+        // (b'+', b'/') => Some(UnsignedRange(A3)),
 
-        // (':', '-') => Some(Category(B1)),
-        ('-', '_') => Some(Category(B2)),
-        // ('_', '/') => Some(Category(B3)),
+        // (b':', b'-') => Some(Category(B1)),
+        (b'-', b'_') => Some(Category(B2)),
+        // (b'_', b'/') => Some(Category(B3)),
 
-        // (':', '_') => Some(Category(C1)),
-        ('_', '+') => Some(Category(C2)),
-        // ('+', '/') => Some(Category(C3)),
+        // (b':', b'_') => Some(Category(C1)),
+        (b'_', b'+') => Some(Category(C2)),
+        // (b'+', b'/') => Some(Category(C3)),
 
-        // (':', '+') => Some(Category(D1)),
-        ('+', '_') => Some(Category(D2)),
-        // ('_', '/') => Some(Category(D3)),
+        // (b':', b'+') => Some(Category(D1)),
+        (b'+', b'_') => Some(Category(D2)),
+        // (b'_', b'/') => Some(Category(D3)),
 
-        // (':', '_') => Some(UnsignedRange(E1)),
-        ('_', '!') => Some(UnsignedRange(E2)),
-        ('!', '_') => Some(Boolean(E3)),
-        ('_', '-') => Some(Undefined(E4)),
-        ('-', '/') => Some(Boolean(E5)),
+        // (b':', b'_') => Some(UnsignedRange(E1)),
+        // (b'_', b'!') => Some(UnsignedRange(E2)),
+        // (b'!', b'_') => Some(Boolean(E3)),
+        (b'_', b'-') => Some(Undefined(E4)),
+        (b'-', b'/') => Some(Boolean(E5)),
 
-        // (':', '_') => Some(UnsignedRange(F1)),
-        ('_', '#') => Some(UnsignedRange(F2)),
-        ('#', '_') => Some(Boolean(F3)),
-        ('_', '@') => Some(Undefined(F4)),
-        ('@', '_') => Some(UnsignedRange(F5)),
-        ('_', '|') => Some(UnsignedRange(F6)),
-        ('|', '_') => Some(UnsignedRange(F7)),
-        // ('_', '/') => Some(UnsignedRange(F8)),
+        // (b':', b'_') => Some(UnsignedRange(F1)),
+        // (b'_', b'#') => Some(UnsignedRange(F2)),
+        // (b'#', b'_') => Some(Boolean(F3)),
+        (b'_', b'@') => Some(Undefined(F4)),
+        (b'@', b'_') => Some(UnsignedRange(F5)),
+        (b'_', b'|') => Some(UnsignedRange(F6)),
+        (b'|', b'_') => Some(UnsignedRange(F7)),
+        // (b'_', b'/') => Some(UnsignedRange(F8)),
 
-        // (':', '_') => Some(UnsignedRange(G1)),
-        ('_', '%') => Some(UnsignedRange(G2)),
-        ('%', '_') => Some(Boolean(G3)),
-        ('_', '_') => Some(Undefined(G4)),
-        // ('_', '/') => Some(Boolean(G5)),
+        // (b':', b'_') => Some(UnsignedRange(G1)),
+        // (b'_', b'%') => Some(UnsignedRange(G2)),
+        // (b'%', b'_') => Some(Boolean(G3)),
+        (b'_', b'_') => Some(Undefined(G4)),
+        // (b'_', b'/') => Some(Boolean(G5)),
 
-        // (':', '_') => Some(UnsignedRange(H1)),
-        // ('_', '/') => Some(UnsignedRange(H2)),
+        // (b':', b'_') => Some(UnsignedRange(H1)),
+        // (b'_', b'/') => Some(UnsignedRange(H2)),
 
-        // (':', '-') => Some(UnsignedRange(I1)),
-        ('-', '@') => Some(UnsignedRange(I2)),
-        ('@', '+') => Some(UnsignedRange(I3)),
-        ('+', '&') => Some(UnsignedRange(I4)),
-        ('&', '-') => Some(UnsignedRange(I5)),
-        ('-', '|') => Some(UnsignedRange(I6)),
-        ('|', '+') => Some(UnsignedRange(I7)),
-        // ('+', '/') => Some(UnsignedRange(I8)),
+        // (b':', b'-') => Some(UnsignedRange(I1)),
+        (b'-', b'@') => Some(UnsignedRange(I2)),
+        (b'@', b'+') => Some(UnsignedRange(I3)),
+        // (b'+', b'&') => Some(UnsignedRange(I4)),
+        // (b'&', b'-') => Some(UnsignedRange(I5)),
+        (b'-', b'|') => Some(UnsignedRange(I6)),
+        (b'|', b'+') => Some(UnsignedRange(I7)),
+        // (b'+', b'/') => Some(UnsignedRange(I8)),
 
-        // (':', '_') => Some(UnsignedRange(J1)),
-        // ('_', '/') => Some(UnsignedRange(J2)),
+        // (b':', b'_') => Some(UnsignedRange(J1)),
+        // (b'_', b'/') => Some(UnsignedRange(J2)),
 
-        // (':', '+') => Some(UnsignedRange(K1)),
-        ('+', '-') => Some(UnsignedRange(K2)),
+        // (b':', b'+') => Some(UnsignedRange(K1)),
+        (b'+', b'-') => Some(UnsignedRange(K2)),
 
         _ => None,
     }
