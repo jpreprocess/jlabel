@@ -24,126 +24,128 @@ pub enum PositionError {
 }
 
 pub fn estimate_position(pattern: &str) -> Result<(AllPosition, &str), PositionError> {
-    let (prefix, range, suffix, asterisks) = find_delim_marks(pattern);
-    if range.is_empty() {
-        return Err(PositionError::EmptyRange);
-    }
+    let split = PositionSplit::new(pattern);
+    let position = split.match_position()?;
+    split.verify(position)?;
 
-    let position = match_position(prefix, suffix, asterisks)?;
-
-    verify(position, prefix, suffix, asterisks)?;
-
-    Ok((position, range))
+    Ok((position, split.into_range()?))
 }
 
-fn find_delim_marks(pattern: &str) -> (&str, &str, &str, (bool, bool)) {
-    let (pattern, asterisks) = trim_asterisk(pattern);
+struct PositionSplit<'a> {
+    prefix: &'a str,
+    range: &'a str,
+    suffix: &'a str,
+    asterisks: (bool, bool),
+}
 
-    // Match to the next char of prefix
-    // /A:
-    //    ^
-    let mut prefix = pattern
-        .bytes()
-        .position(|b| "!#%&+-=@^_|:".contains(b as char))
-        .map(|i| i + 1)
-        .unwrap_or(0);
+impl<'a> PositionSplit<'a> {
+    pub fn new(pattern: &'a str) -> Self {
+        let (pattern, asterisks) = Self::trim_asterisk(pattern);
 
-    // Match to the first char of suffix
-    // /A:
-    // ^
-    let mut suffix = pattern
-        .bytes()
-        .rev()
-        .position(|b| "!#%&+-=@^_|/".contains(b as char))
-        .map(|i| pattern.len() - i - 1)
-        .unwrap_or(pattern.len());
+        // Match to the next char of prefix
+        // /A:
+        //    ^
+        let mut prefix = pattern
+            .bytes()
+            .position(|b| "!#%&+-=@^_|:".contains(b as char))
+            .map(|i| i + 1)
+            .unwrap_or(0);
 
-    // If there is only one prefix/suffix delimiter:
-    // /A:
-    // ^s ^p
-    if prefix > suffix {
-        if prefix == pattern.len() {
-            prefix = 0;
-        } else {
-            suffix = pattern.len();
+        // Match to the first char of suffix
+        // /A:
+        // ^
+        let mut suffix = pattern
+            .bytes()
+            .rev()
+            .position(|b| "!#%&+-=@^_|/".contains(b as char))
+            .map(|i| pattern.len() - i - 1)
+            .unwrap_or(pattern.len());
+
+        // If there is only one prefix/suffix delimiter:
+        // /A:
+        // ^s ^p
+        if prefix > suffix {
+            if prefix == pattern.len() {
+                prefix = 0;
+            } else {
+                suffix = pattern.len();
+            }
+        }
+
+        Self {
+            prefix: &pattern[..prefix],
+            range: &pattern[prefix..suffix],
+            suffix: &pattern[suffix..],
+            asterisks,
         }
     }
 
-    (
-        &pattern[..prefix],
-        &pattern[prefix..suffix],
-        &pattern[suffix..],
-        asterisks,
-    )
-}
-
-fn trim_asterisk(mut pattern: &str) -> (&str, (bool, bool)) {
-    let mut stars = (false, false);
-    if pattern.starts_with('*') {
-        pattern = &pattern[1..];
-        stars.0 = true;
-    }
-    if pattern.ends_with('*') {
-        pattern = &pattern[..pattern.len() - 1];
-        stars.1 = true;
-    }
-    (pattern, stars)
-}
-
-fn match_position(
-    prefix: &str,
-    suffix: &str,
-    asterisks: (bool, bool),
-) -> Result<AllPosition, PositionError> {
-    if suffix.is_empty() && !asterisks.1 {
-        // no suffix and no `*` at the end of pattern
-        return Ok(UnsignedRange(K3));
+    fn trim_asterisk(mut pattern: &str) -> (&str, (bool, bool)) {
+        let mut stars = (false, false);
+        if pattern.starts_with('*') {
+            pattern = &pattern[1..];
+            stars.0 = true;
+        }
+        if pattern.ends_with('*') {
+            pattern = &pattern[..pattern.len() - 1];
+            stars.1 = true;
+        }
+        (pattern, stars)
     }
 
-    if let Some(position) = prefix_match(prefix) {
-        return Ok(position);
-    }
+    pub fn match_position(&self) -> Result<AllPosition, PositionError> {
+        if self.suffix.is_empty() && !self.asterisks.1 {
+            // no suffix and no `*` at the end of pattern
+            return Ok(UnsignedRange(K3));
+        }
 
-    if let Some(position) = suffix_match(suffix) {
-        return Ok(position);
-    }
-
-    if !prefix.is_empty() && !suffix.is_empty() {
-        if let Some(position) = combination_match(
-            prefix.bytes().next_back().unwrap() as char,
-            suffix.bytes().next().unwrap() as char,
-        ) {
+        if let Some(position) = prefix_match(self.prefix) {
             return Ok(position);
         }
+
+        if let Some(position) = suffix_match(self.suffix) {
+            return Ok(position);
+        }
+
+        if !self.prefix.is_empty() && !self.suffix.is_empty() {
+            if let Some(position) = combination_match(
+                self.prefix.bytes().next_back().unwrap() as char,
+                self.suffix.bytes().next().unwrap() as char,
+            ) {
+                return Ok(position);
+            }
+        }
+
+        Err(PositionError::NoMatchingPosition)
     }
 
-    Err(PositionError::NoMatchingPosition)
-}
+    pub fn verify(&self, position: AllPosition) -> Result<(), PositionError> {
+        // Check asterisk
+        if position != Phone(P1) && !self.asterisks.0 {
+            return Err(PositionError::MissingPrefixAsterisk);
+        }
+        if position != UnsignedRange(K3) && !self.asterisks.1 {
+            return Err(PositionError::MissingSuffixAsterisk);
+        }
 
-fn verify(
-    position: AllPosition,
-    prefix: &str,
-    suffix: &str,
-    asterisks: (bool, bool),
-) -> Result<(), PositionError> {
-    // Check asterisk
-    if position != Phone(P1) && !asterisks.0 {
-        return Err(PositionError::MissingPrefixAsterisk);
-    }
-    if position != UnsignedRange(K3) && !asterisks.1 {
-        return Err(PositionError::MissingSuffixAsterisk);
-    }
+        // Check prefix and suffix
+        let (rprefix, rsuffix) = reverse_hint(position);
+        if !rprefix.ends_with(self.prefix) {
+            return Err(PositionError::PrefixVerifyError);
+        }
+        if !rsuffix.starts_with(self.suffix) {
+            return Err(PositionError::SuffixVerifyError);
+        }
 
-    // Check prefix and suffix
-    let (rprefix, rsuffix) = reverse_hint(position);
-    if !rprefix.ends_with(prefix) {
-        return Err(PositionError::PrefixVerifyError);
-    }
-    if !rsuffix.starts_with(suffix) {
-        return Err(PositionError::SuffixVerifyError);
+        Ok(())
     }
 
-    Ok(())
+    pub fn into_range(self) -> Result<&'a str, PositionError> {
+        if self.range.is_empty() {
+            return Err(PositionError::EmptyRange);
+        }
+        Ok(self.range)
+    }
 }
 
 fn prefix_match(prefix: &str) -> Option<AllPosition> {
@@ -357,7 +359,10 @@ mod tests {
     #[test]
     fn basic_fail() {
         assert_eq!(estimate_position("*"), Err(PositionError::EmptyRange));
-        assert_eq!(estimate_position(":*"), Err(PositionError::EmptyRange));
+        assert_eq!(
+            estimate_position(":*"),
+            Err(PositionError::NoMatchingPosition)
+        );
         assert_eq!(estimate_position("*/A:*"), Err(PositionError::EmptyRange));
         assert_eq!(
             estimate_position("*/A:0/B:*"),
