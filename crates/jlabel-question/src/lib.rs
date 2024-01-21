@@ -1,3 +1,4 @@
+pub mod fallback;
 pub mod position;
 
 use std::num::ParseIntError;
@@ -27,6 +28,8 @@ pub enum ParseError {
     FailLiteral(ParseIntError),
     #[error("Invalid boolean: {0}")]
     InvalidBoolean(String),
+    #[error("Failed regex")]
+    FailRegex,
 }
 
 fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
@@ -62,34 +65,15 @@ macro_rules! match_position {
 }
 
 pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
-    let [first, rest @ ..] = patterns else {
-        return Err(ParseError::Empty);
-    };
-    let (prefix, range, suffix) = split_pattern(first).ok_or(ParseError::FailSplitting)?;
+    AllQuestion::parse(patterns)
+}
 
-    let mut ranges = Vec::with_capacity(patterns.len());
-    ranges.push(range);
-
-    for pattern in rest {
-        let (pre, range, suf) = split_pattern(pattern).ok_or(ParseError::FailSplitting)?;
-        if pre != prefix || suf != suffix {
-            return Err(ParseError::PositionMismatch);
-        }
-        ranges.push(range);
-    }
-
-    match_position!(
-        position(prefix, suffix).ok_or(ParseError::InvalidPosition)?,
-        &ranges,
-        [
-            Phone,
-            SignedRange,
-            UnsignedRange,
-            Boolean,
-            Category,
-            Undefined
-        ]
-    )
+pub trait QuestionMatcher
+where
+    Self: Sized,
+{
+    fn parse(patterns: &[&str]) -> Result<Self, ParseError>;
+    fn test(&self, label: &Label) -> bool;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -102,8 +86,38 @@ pub enum AllQuestion {
     Undefined(Question<UndefinedPotision>),
 }
 
-impl AllQuestion {
-    pub fn test(&self, label: &Label) -> bool {
+impl QuestionMatcher for AllQuestion{
+    fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
+        let [first, rest @ ..] = patterns else {
+            return Err(ParseError::Empty);
+        };
+        let (prefix, range, suffix) = split_pattern(first).ok_or(ParseError::FailSplitting)?;
+
+        let mut ranges = Vec::with_capacity(patterns.len());
+        ranges.push(range);
+
+        for pattern in rest {
+            let (pre, range, suf) = split_pattern(pattern).ok_or(ParseError::FailSplitting)?;
+            if pre != prefix || suf != suffix {
+                return Err(ParseError::PositionMismatch);
+            }
+            ranges.push(range);
+        }
+
+        match_position!(
+            position(prefix, suffix).ok_or(ParseError::InvalidPosition)?,
+            &ranges,
+            [
+                Phone,
+                SignedRange,
+                UnsignedRange,
+                Boolean,
+                Category,
+                Undefined
+            ]
+        )
+    }
+    fn test(&self, label: &Label) -> bool {
         match self {
             Self::Phone(q) => q.test(label),
             Self::SignedRange(q) => q.test(label),
