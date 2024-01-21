@@ -86,7 +86,7 @@ pub enum AllQuestion {
     Undefined(Question<UndefinedPotision>),
 }
 
-impl QuestionMatcher for AllQuestion{
+impl QuestionMatcher for AllQuestion {
     fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
         let [first, rest @ ..] = patterns else {
             return Err(ParseError::Empty);
