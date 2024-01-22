@@ -71,18 +71,26 @@ mod tests {
 
     use crate::{fallback::regex::RegexFallback, AllQuestion, QuestionMatcher};
 
+    use super::RegexQuestion;
+
     const TEST_LABEL:&str="sil^k-o+N=n/A:-4+1+5/B:xx-xx_xx/C:09_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:5_5#0_xx@1_1|1_5/G:xx_xx%xx_xx_xx/H:xx_xx/I:1-5@1+1&1-1|1+5/J:xx_xx/K:1+1-5";
 
     #[test]
     fn ok() {
         let label = Label::from_str(TEST_LABEL).unwrap();
-        assert!(RegexFallback::<AllQuestion>::parse(&["*-o+*", "*-N+*"])
-            .unwrap()
-            .test(&label));
+        let parsed = RegexFallback::<AllQuestion>::parse(&["*-o+*", "*-N+*"]).unwrap();
+        assert!(matches!(&parsed, RegexFallback::Ok(_)));
+        assert!(parsed.test(&label));
     }
     #[test]
     fn regex() {
         let label = Label::from_str(TEST_LABEL).unwrap();
+
+        assert!(matches!(
+            RegexFallback::<AllQuestion>::parse(&["*^k-o+*"]),
+            Ok(RegexFallback::Regex(_))
+        ));
+
         assert!(RegexFallback::<AllQuestion>::parse(&["*^k-o+*"])
             .unwrap()
             .test(&label));
@@ -93,5 +101,30 @@ mod tests {
         assert!(!RegexFallback::<AllQuestion>::parse(&["^k-o+*"])
             .unwrap()
             .test(&label));
+    }
+    #[test]
+    fn wildcard() {
+        use regex_syntax::hir::*;
+        assert_eq!(
+            RegexQuestion::parse_wildcard("*?^k-?o+*"),
+            Hir::concat(vec![
+                Hir::repetition(Repetition {
+                    min: 0,
+                    max: None,
+                    greedy: true,
+                    sub: Box::new(Hir::dot(Dot::AnyByteExceptLF)),
+                }),
+                Hir::dot(Dot::AnyByteExceptLF),
+                Hir::literal(*b"^k-"),
+                Hir::dot(Dot::AnyByteExceptLF),
+                Hir::literal(*b"o+"),
+                Hir::repetition(Repetition {
+                    min: 0,
+                    max: None,
+                    greedy: true,
+                    sub: Box::new(Hir::dot(Dot::AnyByteExceptLF)),
+                })
+            ])
+        );
     }
 }
