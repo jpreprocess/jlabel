@@ -474,13 +474,22 @@ mod tests {
         assert_eq!(merge_ranges(vec![1..3, 0..1]), Ok(0..3));
         assert_eq!(merge_ranges(vec![0..2, 1..3]), Ok(0..3));
         assert_eq!(merge_ranges(vec![-6..7, 1..3]), Ok(-6..7));
+        assert_eq!(
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7, -8..0]),
+            Ok(-8..7)
+        );
 
+        assert_eq!(merge_ranges::<u8>(vec![]), Err(ParseError::Empty));
         assert_eq!(
             merge_ranges(vec![0..1, 5..6]),
             Err(ParseError::IncontinuousRange)
         );
         assert_eq!(
             merge_ranges(vec![3..6, -1..2]),
+            Err(ParseError::IncontinuousRange)
+        );
+        assert_eq!(
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7]),
             Err(ParseError::IncontinuousRange)
         );
     }
