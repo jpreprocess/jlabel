@@ -1,5 +1,7 @@
-pub mod fallback;
 pub mod position;
+
+#[cfg(feature = "regex")]
+pub mod fallback;
 
 use std::num::ParseIntError;
 

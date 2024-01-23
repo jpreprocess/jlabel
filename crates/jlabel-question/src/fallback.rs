@@ -5,26 +5,6 @@ use regex_syntax::hir::{Dot, Hir, Repetition};
 use crate::{ParseError, QuestionMatcher};
 
 #[derive(Debug, Clone)]
-pub enum RegexFallback<T: QuestionMatcher> {
-    Ok(T),
-    Regex(RegexQuestion),
-}
-
-impl<T: QuestionMatcher> QuestionMatcher for RegexFallback<T> {
-    fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
-        T::parse(patterns)
-            .map(Self::Ok)
-            .or_else(|_| RegexQuestion::parse(patterns).map(Self::Regex))
-    }
-    fn test(&self, label: &Label) -> bool {
-        match &self {
-            Self::Ok(inner) => inner.test(label),
-            Self::Regex(regex) => regex.test(label),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub struct RegexQuestion(Regex);
 
 impl RegexQuestion {
@@ -65,42 +45,22 @@ impl QuestionMatcher for RegexQuestion {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
-    use jlabel::Label;
-
-    use crate::{fallback::regex::RegexFallback, AllQuestion, QuestionMatcher};
-
     use super::RegexQuestion;
 
-    const TEST_LABEL:&str="sil^k-o+N=n/A:-4+1+5/B:xx-xx_xx/C:09_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:5_5#0_xx@1_1|1_5/G:xx_xx%xx_xx_xx/H:xx_xx/I:1-5@1+1&1-1|1+5/J:xx_xx/K:1+1-5";
-
-    #[test]
-    fn ok() {
-        let label = Label::from_str(TEST_LABEL).unwrap();
-        let parsed = RegexFallback::<AllQuestion>::parse(&["*-o+*", "*-N+*"]).unwrap();
-        assert!(matches!(&parsed, RegexFallback::Ok(_)));
-        assert!(parsed.test(&label));
-    }
     #[test]
     fn regex() {
+        const TEST_LABEL:&str="sil^k-o+N=n/A:-4+1+5/B:xx-xx_xx/C:09_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:5_5#0_xx@1_1|1_5/G:xx_xx%xx_xx_xx/H:xx_xx/I:1-5@1+1&1-1|1+5/J:xx_xx/K:1+1-5";
+
+        use crate::QuestionMatcher;
+        use jlabel::Label;
+        use std::str::FromStr;
+
         let label = Label::from_str(TEST_LABEL).unwrap();
 
-        assert!(matches!(
-            RegexFallback::<AllQuestion>::parse(&["*^k-o+*"]),
-            Ok(RegexFallback::Regex(_))
-        ));
+        assert!(RegexQuestion::parse(&["*^k-o+*"]).unwrap().test(&label));
+        assert!(!RegexQuestion::parse(&["INVALID?*"]).unwrap().test(&label));
 
-        assert!(RegexFallback::<AllQuestion>::parse(&["*^k-o+*"])
-            .unwrap()
-            .test(&label));
-        assert!(!RegexFallback::<AllQuestion>::parse(&["INVALID?*"])
-            .unwrap()
-            .test(&label));
-
-        assert!(!RegexFallback::<AllQuestion>::parse(&["^k-o+*"])
-            .unwrap()
-            .test(&label));
+        assert!(!RegexQuestion::parse(&["^k-o+*"]).unwrap().test(&label));
     }
     #[test]
     fn wildcard() {
