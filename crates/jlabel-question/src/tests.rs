@@ -123,6 +123,9 @@ fn query() {
         },
     };
 
+    assert!(question(&["b^*"]).unwrap().test(&label));
+    assert!(question(&["*^o-*"]).unwrap().test(&label));
+
     assert!(!question(&["*=i/A:*"]).unwrap().test(&label));
 
     assert!(!question(&["*/A:-??+*", "*/A:-9+*"]).unwrap().test(&label));

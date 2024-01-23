@@ -134,8 +134,8 @@ impl Position for PhonePosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::P1 => label.phoneme.p1.as_ref(),
-            Self::P2 => label.phoneme.p2.as_ref(),
+            Self::P1 => label.phoneme.p2.as_ref(),
+            Self::P2 => label.phoneme.p1.as_ref(),
             Self::P3 => label.phoneme.c.as_ref(),
             Self::P4 => label.phoneme.n1.as_ref(),
             Self::P5 => label.phoneme.n2.as_ref(),
