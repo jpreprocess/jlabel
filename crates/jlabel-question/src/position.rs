@@ -157,13 +157,8 @@ impl Position for SignedRangePosition {
     type Range = Range<i8>;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
-        let first = ranges.first().ok_or(ParseError::Empty)?;
-        let mut range = range_i8(first)?;
-        for r in ranges[1..].iter() {
-            let r = range_i8(r)?;
-            extend_range(&mut range, r)?;
-        }
-        Ok(range)
+        let parsed_ranges = ranges.iter().map(range_i8).collect::<Result<Vec<_>, _>>()?;
+        merge_ranges(parsed_ranges)
     }
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
@@ -177,8 +172,8 @@ impl Position for SignedRangePosition {
     }
 }
 
-fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
-    let range = match s {
+fn range_i8<S: AsRef<str>>(s: S) -> Result<Range<i8>, ParseError> {
+    let range = match s.as_ref() {
         "-??" => -99..-9,
         "-?" => -9..0,
         "?" => 0..10,
@@ -240,13 +235,8 @@ impl Position for UnsignedRangePosition {
     type Range = Range<u8>;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
-        let first = ranges.first().ok_or(ParseError::Empty)?;
-        let mut range = range_u8(first)?;
-        for r in ranges[1..].iter() {
-            let r = range_u8(r)?;
-            extend_range(&mut range, r)?;
-        }
-        Ok(range)
+        let parsed_ranges = ranges.iter().map(range_u8).collect::<Result<Vec<_>, _>>()?;
+        merge_ranges(parsed_ranges)
     }
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
@@ -286,8 +276,8 @@ impl Position for UnsignedRangePosition {
     }
 }
 
-fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
-    let range = match s {
+fn range_u8<S: AsRef<str>>(s: S) -> Result<Range<u8>, ParseError> {
+    let range = match s.as_ref() {
         "?" => 1..10,
         s if s.ends_with('?') => {
             let d = s[..s.len() - 1]
@@ -303,20 +293,24 @@ fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
     Ok(range)
 }
 
-fn extend_range<Idx>(
-    target: &mut Range<Idx>,
-    Range { start, end }: Range<Idx>,
-) -> Result<(), ParseError>
+fn merge_ranges<Idx>(mut ranges: Vec<Range<Idx>>) -> Result<Range<Idx>, ParseError>
 where
-    Idx: Eq,
+    Idx: Ord + Copy,
 {
-    let ok = target.end == start;
-    if ok {
-        target.end = end;
-        Ok(())
-    } else {
-        Err(ParseError::IncontinuousRange)
-    }
+    ranges.sort_unstable_by_key(|range| range.start);
+    let merged = ranges
+        .into_iter()
+        .try_fold(None, |acc: Option<Range<Idx>>, curr| match acc {
+            // By sorting, always acc.start <= curr.start
+            // Only need to check curr's start is continuous with acc's end
+            Some(mut acc) if curr.start <= acc.end => {
+                acc.end = acc.end.max(curr.end);
+                Ok(Some(acc))
+            }
+            None => Ok(Some(curr)),
+            _ => Err(ParseError::IncontinuousRange),
+        })?;
+    merged.ok_or(ParseError::Empty)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -473,21 +467,29 @@ mod tests {
     }
 
     #[test]
-    fn extend_range_1() {
-        let mut range = -9..-9;
-        extend_range(&mut range, -9..-6).unwrap();
-        assert_eq!(range, -9..-6);
-        extend_range(&mut range, -6..-3).unwrap();
-        assert_eq!(range, -9..-3);
-        extend_range(&mut range, -3..2).unwrap();
-        assert_eq!(range, -9..2);
-
+    #[allow(clippy::single_range_in_vec_init)]
+    fn merge_ranges_1() {
+        assert_eq!(merge_ranges(vec![0..1]), Ok(0..1));
+        assert_eq!(merge_ranges(vec![0..1, 1..3]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![1..3, 0..1]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![0..2, 1..3]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![-6..7, 1..3]), Ok(-6..7));
         assert_eq!(
-            extend_range(&mut range, -16..-10),
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7, -8..0]),
+            Ok(-8..7)
+        );
+
+        assert_eq!(merge_ranges::<u8>(vec![]), Err(ParseError::Empty));
+        assert_eq!(
+            merge_ranges(vec![0..1, 5..6]),
             Err(ParseError::IncontinuousRange)
         );
         assert_eq!(
-            extend_range(&mut range, 1..3),
+            merge_ranges(vec![3..6, -1..2]),
+            Err(ParseError::IncontinuousRange)
+        );
+        assert_eq!(
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7]),
             Err(ParseError::IncontinuousRange)
         );
     }
