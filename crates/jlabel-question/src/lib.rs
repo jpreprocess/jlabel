@@ -1,6 +1,9 @@
 mod parse_position;
 pub mod position;
 
+#[cfg(feature = "regex")]
+pub mod regex;
+
 use std::num::ParseIntError;
 
 use position::{
@@ -27,6 +30,9 @@ pub enum ParseError {
     FailLiteral(ParseIntError),
     #[error("Invalid boolean: {0}")]
     InvalidBoolean(String),
+    #[cfg(feature = "regex")]
+    #[error("Failed regex")]
+    FailRegex,
 }
 
 macro_rules! match_position {
@@ -39,36 +45,12 @@ macro_rules! match_position {
     };
 }
 
-pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
-    let mut position = None;
-    let mut ranges = Vec::with_capacity(patterns.len());
-
-    for pattern in patterns {
-        let (pos, range) = estimate_position(pattern)?;
-
-        if let Some(position) = position {
-            if pos != position {
-                return Err(ParseError::PositionMismatch);
-            }
-        } else {
-            position = Some(pos);
-        }
-
-        ranges.push(range);
-    }
-
-    match_position!(
-        position.ok_or(ParseError::Empty)?,
-        &ranges,
-        [
-            Phone,
-            SignedRange,
-            UnsignedRange,
-            Boolean,
-            Category,
-            Undefined
-        ]
-    )
+pub trait QuestionMatcher
+where
+    Self: Sized,
+{
+    fn parse(patterns: &[&str]) -> Result<Self, ParseError>;
+    fn test(&self, label: &Label) -> bool;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -81,8 +63,39 @@ pub enum AllQuestion {
     Undefined(Question<UndefinedPotision>),
 }
 
-impl AllQuestion {
-    pub fn test(&self, label: &Label) -> bool {
+impl QuestionMatcher for AllQuestion {
+    fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
+        let mut position = None;
+        let mut ranges = Vec::with_capacity(patterns.len());
+
+        for pattern in patterns {
+            let (pos, range) = estimate_position(pattern)?;
+
+            if let Some(position) = position {
+                if pos != position {
+                    return Err(ParseError::PositionMismatch);
+                }
+            } else {
+                position = Some(pos);
+            }
+
+            ranges.push(range);
+        }
+
+        match_position!(
+            position.ok_or(ParseError::Empty)?,
+            &ranges,
+            [
+                Phone,
+                SignedRange,
+                UnsignedRange,
+                Boolean,
+                Category,
+                Undefined
+            ]
+        )
+    }
+    fn test(&self, label: &Label) -> bool {
         match self {
             Self::Phone(q) => q.test(label),
             Self::SignedRange(q) => q.test(label),
