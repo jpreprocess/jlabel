@@ -1,3 +1,5 @@
+//! Estimate the position from pattern
+
 use crate::position::AllPosition;
 use crate::position::BooleanPosition::*;
 use crate::position::CategoryPosition::*;

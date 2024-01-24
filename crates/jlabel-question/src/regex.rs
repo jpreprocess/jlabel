@@ -1,3 +1,5 @@
+//! Fallback using regular expression
+
 use jlabel::Label;
 use regex_automata::{meta::Regex, Anchored, Input};
 use regex_syntax::hir::{Dot, Hir, Repetition};

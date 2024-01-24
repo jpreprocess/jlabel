@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! HTS-style full-context label question parser and matcher.
 //!
 //! The main structure for parsing and matching is [`AllQuestion`].
@@ -234,11 +235,14 @@ impl QuestionMatcher for AllQuestion {
 /// Used in variants of [`AllQuestion`]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Question<P: Position> {
+    /// The position this question matches to.
     pub position: P,
+    /// The parsed range
     pub range: Option<P::Range>,
 }
 
 impl<P: Position> Question<P> {
+    /// Parse question pattern
     pub fn new(position: P, ranges: &[&str]) -> Result<Self, ParseError> {
         match ranges {
             ["xx"] => Ok(Self {
@@ -252,6 +256,7 @@ impl<P: Position> Question<P> {
         }
     }
 
+    /// Check if this question matches
     pub fn test(&self, label: &Label) -> bool {
         match (&self.range, self.position.get(label)) {
             (Some(range), Some(target)) => self.position.test(range, target),

@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! HTS-style full-context label structure and parser/serializer from/to string.
 //!
 //! ```rust
