@@ -5,70 +5,58 @@ use jlabel::{
 };
 
 #[test]
-fn splitter() {
-    assert_eq!(split_pattern("a^*").unwrap(), ("", "a", "^*"));
-    assert_eq!(split_pattern("*/A:-??+*").unwrap(), ("*/A:", "-??", "+*"));
-    assert_eq!(split_pattern("*|?+*").unwrap(), ("*|", "?", "+*"));
-    assert_eq!(split_pattern("*-1").unwrap(), ("*-", "1", ""));
-
-    assert!(split_pattern("*").is_none());
-    assert!(split_pattern(":*").is_none());
-    assert!(split_pattern("*/A:*").is_none());
-}
-
-#[test]
 fn parse_question() {
     assert_eq!(
-        question(&["a^*", "A^*"]).unwrap(),
+        AllQuestion::parse(&["a^*", "A^*"]).unwrap(),
         AllQuestion::Phone(Question {
             position: PhonePosition::P1,
             range: Some(vec!["a".to_string(), "A".to_string()])
         })
     );
     assert_eq!(
-        question(&["*/A:-3+*"]).unwrap(),
+        AllQuestion::parse(&["*/A:-3+*"]).unwrap(),
         AllQuestion::SignedRange(Question {
             position: SignedRangePosition::A1,
             range: Some(-3..-2)
         })
     );
     assert_eq!(
-        question(&["*/A:-??+*", "*/A:-?+*", "*/A:?+*", "*/A:10+*", "*/A:11+*",]).unwrap(),
+        AllQuestion::parse(&["*/A:-??+*", "*/A:-?+*", "*/A:?+*", "*/A:10+*", "*/A:11+*",]).unwrap(),
         AllQuestion::SignedRange(Question {
             position: SignedRangePosition::A1,
             range: Some(-99..12)
         })
     );
     assert_eq!(
-        question(&["*_42/I:*"]).unwrap(),
+        AllQuestion::parse(&["*_42/I:*"]).unwrap(),
         AllQuestion::UnsignedRange(Question {
             position: UnsignedRangePosition::H2,
             range: Some(42..43)
         })
     );
     assert_eq!(
-        question(&["*_?/I:*", "*_1?/I:*", "*_2?/I:*", "*_30/I:*", "*_31/I:*",]).unwrap(),
+        AllQuestion::parse(&["*_?/I:*", "*_1?/I:*", "*_2?/I:*", "*_30/I:*", "*_31/I:*",]).unwrap(),
         AllQuestion::UnsignedRange(Question {
             position: UnsignedRangePosition::H2,
             range: Some(1..32)
         })
     );
     assert_eq!(
-        question(&["*%1_*"]).unwrap(),
+        AllQuestion::parse(&["*%1_*"]).unwrap(),
         AllQuestion::Boolean(Question {
             position: BooleanPosition::G3,
             range: Some(true)
         })
     );
     assert_eq!(
-        question(&["*/B:17-*", "*/B:20-*"]).unwrap(),
+        AllQuestion::parse(&["*/B:17-*", "*/B:20-*"]).unwrap(),
         AllQuestion::Category(Question {
             position: CategoryPosition::B1,
             range: Some(vec![17, 20])
         })
     );
     assert_eq!(
-        question(&["*_xx_*"]).unwrap(),
+        AllQuestion::parse(&["*_xx_*"]).unwrap(),
         AllQuestion::Undefined(Question {
             position: UndefinedPotision::G4,
             range: None
@@ -79,12 +67,25 @@ fn parse_question() {
 #[test]
 fn parse_question_err() {
     use ParseError::*;
+    use PositionError::*;
 
-    assert_eq!(question(&[]), Err(Empty));
-    assert_eq!(question(&["*/A:*"]), Err(FailSplitting));
-    assert_eq!(question(&["*/A:-??+*", "*/A:*"]), Err(FailSplitting));
-    assert_eq!(question(&["*/A:-??+*", "*/B:0+*"]), Err(PositionMismatch));
-    assert_eq!(question(&["*/A:0/B:*"]), Err(InvalidPosition));
+    assert_eq!(AllQuestion::parse(&[]), Err(Empty));
+    assert_eq!(
+        AllQuestion::parse(&["*/A:*"]),
+        Err(InvalidPosition(EmptyRange))
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:-??+*", "*/A:*"]),
+        Err(InvalidPosition(EmptyRange))
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:-??+*", "*/B:0-*"]),
+        Err(PositionMismatch)
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:0/B:*"]),
+        Err(InvalidPosition(SuffixVerifyError))
+    );
 }
 
 #[test]
@@ -123,15 +124,20 @@ fn query() {
         },
     };
 
-    assert!(!question(&["*=i/A:*"]).unwrap().test(&label));
+    assert!(AllQuestion::parse(&["b^*"]).unwrap().test(&label));
+    assert!(AllQuestion::parse(&["*^o-*"]).unwrap().test(&label));
 
-    assert!(!question(&["*/A:-??+*", "*/A:-9+*"]).unwrap().test(&label));
-    assert!(question(&["*/A:-6+*"]).unwrap().test(&label));
+    assert!(!AllQuestion::parse(&["*=i/A:*"]).unwrap().test(&label));
 
-    assert!(question(&["*+8/B:*"]).unwrap().test(&label));
+    assert!(!AllQuestion::parse(&["*/A:-??+*", "*/A:-9+*"])
+        .unwrap()
+        .test(&label));
+    assert!(AllQuestion::parse(&["*/A:-6+*"]).unwrap().test(&label));
 
-    assert!(question(&["*-xx_*"]).unwrap().test(&label));
-    assert!(question(&["*/C:01_*"]).unwrap().test(&label));
+    assert!(AllQuestion::parse(&["*+8/B:*"]).unwrap().test(&label));
+
+    assert!(AllQuestion::parse(&["*-xx_*"]).unwrap().test(&label));
+    assert!(AllQuestion::parse(&["*/C:01_*"]).unwrap().test(&label));
 }
 
 #[test]

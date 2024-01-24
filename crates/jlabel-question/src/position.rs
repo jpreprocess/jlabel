@@ -4,84 +4,7 @@ use crate::Label;
 
 use super::ParseError;
 
-/// Parser for position.
-pub fn position(prefix: &str, suffix: &str) -> Option<AllPosition> {
-    use AllPosition::*;
-    use BooleanPosition::*;
-    use CategoryPosition::*;
-    use PhonePosition::*;
-    use SignedRangePosition::*;
-    use UndefinedPotision::*;
-    use UnsignedRangePosition::*;
-
-    match (prefix, suffix) {
-        ("", "^*") => Some(Phone(P1)),
-        ("*^", "-*") => Some(Phone(P2)),
-        ("*-", "+*") => Some(Phone(P3)),
-        ("*+", "=*") => Some(Phone(P4)),
-        ("*=", "/A:*") => Some(Phone(P5)),
-
-        ("*/A:", "+*") => Some(SignedRange(A1)),
-        ("*+", "+*") => Some(UnsignedRange(A2)),
-        ("*+", "/B:*") => Some(UnsignedRange(A3)),
-
-        ("*/B:", "-*") => Some(Category(B1)),
-        ("*-", "_*") => Some(Category(B2)),
-        ("*_", "/C:*") => Some(Category(B3)),
-
-        ("*/C:", "_*") => Some(Category(C1)),
-        ("*_", "+*") => Some(Category(C2)),
-        ("*+", "/D:*") => Some(Category(C3)),
-
-        ("*/D:", "+*") => Some(Category(D1)),
-        ("*+", "_*") => Some(Category(D2)),
-        ("*_", "/E:*") => Some(Category(D3)),
-
-        ("*/E:", "_*") => Some(UnsignedRange(E1)),
-        ("*_", "!*") => Some(UnsignedRange(E2)),
-        ("*!", "_*") => Some(Boolean(E3)),
-        ("*_", "-*") => Some(Undefined(E4)),
-        ("*-", "/F:*") => Some(Boolean(E5)),
-
-        ("*/F:", "_*") => Some(UnsignedRange(F1)),
-        ("*_", "#*") => Some(UnsignedRange(F2)),
-        ("*#", "_*") => Some(Boolean(F3)),
-        ("*_", "@*") => Some(Undefined(F4)),
-        ("*@", "_*") => Some(UnsignedRange(F5)),
-        ("*_", "|*") => Some(UnsignedRange(F6)),
-        ("*|", "_*") => Some(UnsignedRange(F7)),
-        ("*_", "/G:*") => Some(UnsignedRange(F8)),
-
-        ("*/G:", "_*") => Some(UnsignedRange(G1)),
-        ("*_", "%*") => Some(UnsignedRange(G2)),
-        ("*%", "_*") => Some(Boolean(G3)),
-        ("*_", "_*") => Some(Undefined(G4)),
-        ("*_", "/H:*") => Some(Boolean(G5)),
-
-        ("*/H:", "_*") => Some(UnsignedRange(H1)),
-        ("*_", "/I:*") => Some(UnsignedRange(H2)),
-
-        ("*/I:", "-*") => Some(UnsignedRange(I1)),
-        ("*-", "@*") => Some(UnsignedRange(I2)),
-        ("*@", "+*") => Some(UnsignedRange(I3)),
-        ("*+", "&*") => Some(UnsignedRange(I4)),
-        ("*&", "-*") => Some(UnsignedRange(I5)),
-        ("*-", "|*") => Some(UnsignedRange(I6)),
-        ("*|", "+*") => Some(UnsignedRange(I7)),
-        ("*+", "/J:*") => Some(UnsignedRange(I8)),
-
-        ("*/J:", "_*") => Some(UnsignedRange(J1)),
-        ("*_", "/K:*") => Some(UnsignedRange(J2)),
-
-        ("*/K:", "+*") => Some(UnsignedRange(K1)),
-        ("*+", "-*") => Some(UnsignedRange(K2)),
-        ("*-", "") => Some(UnsignedRange(K3)),
-
-        _ => None,
-    }
-}
-
-/// A position. All positions can be represented by this enum.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AllPosition {
     /// Phone fields
     Phone(PhonePosition),
@@ -138,8 +61,8 @@ impl Position for PhonePosition {
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
         match self {
-            Self::P1 => label.phoneme.p1.as_ref(),
-            Self::P2 => label.phoneme.p2.as_ref(),
+            Self::P1 => label.phoneme.p2.as_ref(),
+            Self::P2 => label.phoneme.p1.as_ref(),
             Self::P3 => label.phoneme.c.as_ref(),
             Self::P4 => label.phoneme.n1.as_ref(),
             Self::P5 => label.phoneme.n2.as_ref(),
@@ -162,13 +85,8 @@ impl Position for SignedRangePosition {
     type Range = Range<i8>;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
-        let first = ranges.first().ok_or(ParseError::Empty)?;
-        let mut range = range_i8(first)?;
-        for r in ranges[1..].iter() {
-            let r = range_i8(r)?;
-            extend_range(&mut range, r)?;
-        }
-        Ok(range)
+        let parsed_ranges = ranges.iter().map(range_i8).collect::<Result<Vec<_>, _>>()?;
+        merge_ranges(parsed_ranges)
     }
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
@@ -182,8 +100,8 @@ impl Position for SignedRangePosition {
     }
 }
 
-fn range_i8(s: &str) -> Result<Range<i8>, ParseError> {
-    let range = match s {
+fn range_i8<S: AsRef<str>>(s: S) -> Result<Range<i8>, ParseError> {
+    let range = match s.as_ref() {
         "-??" => -99..-9,
         "-?" => -9..0,
         "?" => 0..10,
@@ -246,13 +164,8 @@ impl Position for UnsignedRangePosition {
     type Range = Range<u8>;
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
-        let first = ranges.first().ok_or(ParseError::Empty)?;
-        let mut range = range_u8(first)?;
-        for r in ranges[1..].iter() {
-            let r = range_u8(r)?;
-            extend_range(&mut range, r)?;
-        }
-        Ok(range)
+        let parsed_ranges = ranges.iter().map(range_u8).collect::<Result<Vec<_>, _>>()?;
+        merge_ranges(parsed_ranges)
     }
 
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target> {
@@ -292,8 +205,8 @@ impl Position for UnsignedRangePosition {
     }
 }
 
-fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
-    let range = match s {
+fn range_u8<S: AsRef<str>>(s: S) -> Result<Range<u8>, ParseError> {
+    let range = match s.as_ref() {
         "?" => 1..10,
         s if s.ends_with('?') => {
             let d = s[..s.len() - 1]
@@ -309,20 +222,24 @@ fn range_u8(s: &str) -> Result<Range<u8>, ParseError> {
     Ok(range)
 }
 
-fn extend_range<Idx>(
-    target: &mut Range<Idx>,
-    Range { start, end }: Range<Idx>,
-) -> Result<(), ParseError>
+fn merge_ranges<Idx>(mut ranges: Vec<Range<Idx>>) -> Result<Range<Idx>, ParseError>
 where
-    Idx: Eq,
+    Idx: Ord + Copy,
 {
-    let ok = target.end == start;
-    if ok {
-        target.end = end;
-        Ok(())
-    } else {
-        Err(ParseError::IncontinuousRange)
-    }
+    ranges.sort_unstable_by_key(|range| range.start);
+    let merged = ranges
+        .into_iter()
+        .try_fold(None, |acc: Option<Range<Idx>>, curr| match acc {
+            // By sorting, always acc.start <= curr.start
+            // Only need to check curr's start is continuous with acc's end
+            Some(mut acc) if curr.start <= acc.end => {
+                acc.end = acc.end.max(curr.end);
+                Ok(Some(acc))
+            }
+            None => Ok(Some(curr)),
+            _ => Err(ParseError::IncontinuousRange),
+        })?;
+    merged.ok_or(ParseError::Empty)
 }
 
 /// Positions with boolean type
@@ -482,21 +399,29 @@ mod tests {
     }
 
     #[test]
-    fn extend_range_1() {
-        let mut range = -9..-9;
-        extend_range(&mut range, -9..-6).unwrap();
-        assert_eq!(range, -9..-6);
-        extend_range(&mut range, -6..-3).unwrap();
-        assert_eq!(range, -9..-3);
-        extend_range(&mut range, -3..2).unwrap();
-        assert_eq!(range, -9..2);
-
+    #[allow(clippy::single_range_in_vec_init)]
+    fn merge_ranges_1() {
+        assert_eq!(merge_ranges(vec![0..1]), Ok(0..1));
+        assert_eq!(merge_ranges(vec![0..1, 1..3]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![1..3, 0..1]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![0..2, 1..3]), Ok(0..3));
+        assert_eq!(merge_ranges(vec![-6..7, 1..3]), Ok(-6..7));
         assert_eq!(
-            extend_range(&mut range, -16..-10),
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7, -8..0]),
+            Ok(-8..7)
+        );
+
+        assert_eq!(merge_ranges::<u8>(vec![]), Err(ParseError::Empty));
+        assert_eq!(
+            merge_ranges(vec![0..1, 5..6]),
             Err(ParseError::IncontinuousRange)
         );
         assert_eq!(
-            extend_range(&mut range, 1..3),
+            merge_ranges(vec![3..6, -1..2]),
+            Err(ParseError::IncontinuousRange)
+        );
+        assert_eq!(
+            merge_ranges(vec![-6..7, 1..3, 2..6, -8..-7]),
             Err(ParseError::IncontinuousRange)
         );
     }
