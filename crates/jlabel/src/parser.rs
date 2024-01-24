@@ -5,14 +5,19 @@ use crate::fullcontext_label::{
     Mora, Phoneme, Utterance, Word,
 };
 
+/// Errors from jlabel parser.
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
+    /// The required symbol was not found.
     #[error("Symbol not found: expected {0}")]
     SymbolNotFound(&'static str),
+    /// The position was supposed to be integer, but failed to parse it as integer.
     #[error("Parse int error: {0}")]
     ParseIntError(#[from] ParseIntError),
+    /// The position was supposed to be boolean (0 or 1), but failed to parse it as boolean.
     #[error("Parse bool error")]
     ParseBoolError,
+    /// The position must always be undefined.
     #[error("Not undefined")]
     NotUndefined,
 }
