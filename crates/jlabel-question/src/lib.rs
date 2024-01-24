@@ -1,3 +1,39 @@
+//! HTS-style full-context label question parser and matcher.
+//!
+//! The main structure for parsing and matching is [`AllQuestion`].
+//! It can parse most patterns, but it cannot parse some of them.
+//!
+//! ```rust
+//! # use std::error::Error;
+//! use jlabel::Label;
+//! use jlabel_question::{AllQuestion, QuestionMatcher};
+//!
+//! use std::str::FromStr;
+//!
+//! # fn main() -> Result<(), Box<dyn Error>> {
+//! let question = AllQuestion::parse(&["*/A:-??+*", "*/A:-?+*"])?;
+//! let label_str = concat!(
+//!     "sil^n-i+h=o",
+//!     "/A:-3+1+7",
+//!     "/B:xx-xx_xx",
+//!     "/C:02_xx+xx",
+//!     "/D:02+xx_xx",
+//!     "/E:xx_xx!xx_xx-xx",
+//!     "/F:7_4#0_xx@1_3|1_12",
+//!     "/G:4_4%0_xx_1",
+//!     "/H:xx_xx",
+//!     "/I:3-12@1+2&1-8|1+41",
+//!     "/J:5_29",
+//!     "/K:2+8-41"
+//! );
+//! assert!(question.test(&Label::from_str(label_str)?));
+//! #
+//! #     Ok(())
+//! # }
+//! ```
+//!
+//! ## Condition for parsing as [`AllQuestion`]
+//!
 //! Here is the necessary condition for the pattern to succeed in parsing as [`AllQuestion`],
 //! but some questions may not succeed even if they fulfill these requirements.
 //!
@@ -11,8 +47,42 @@
 //! - When the pattern is about position of numerical field (except for categorical field such as `B`, `C`, or `D`),
 //!   - The pattern must be continuous.
 //!
-//! Because [`AllQuestion`] cannot parse all of the valid htsvoice question patterns,
-//! we recommend falling back to [`regex::RegexQuestion`] in case of failed parsing.
+//! ## Fallback
+//!
+//! As [`AllQuestion`] parsing does not always suceed (even if the pattern is correct),
+//! you may need to write fallback for that.
+//!
+//! If you just want to ignore those pattern, you can simply return `false` instead of the result of `test()`.
+//!
+//! If you need to successfully parse pattern which [`AllQuestion`] fails to parse,
+//! [`regex::RegexQuestion`] is the best choice.
+//!
+//! ```rust
+//! # #[cfg(feature = "regex")]
+//! # {
+//! use jlabel::Label;
+//! use jlabel_question::{regex::RegexQuestion, AllQuestion, ParseError, QuestionMatcher};
+//!
+//! enum Pattern {
+//!     AllQustion(AllQuestion),
+//!     Regex(RegexQuestion),
+//! }
+//! impl Pattern {
+//!     fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
+//!         match AllQuestion::parse(patterns) {
+//!             Ok(question) => Ok(Self::AllQustion(question)),
+//!             Err(_) => Ok(Self::Regex(RegexQuestion::parse(patterns)?)),
+//!         }
+//!     }
+//!     fn test(&self, label: &Label) -> bool {
+//!         match self {
+//!             Self::AllQustion(question) => question.test(label),
+//!             Self::Regex(question) => question.test(label),
+//!         }
+//!     }
+//! }
+//! # }
+//! ```
 
 pub mod parse_position;
 pub mod position;
