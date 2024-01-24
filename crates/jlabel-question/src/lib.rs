@@ -30,6 +30,7 @@ pub enum ParseError {
     FailLiteral(ParseIntError),
     #[error("Invalid boolean: {0}")]
     InvalidBoolean(String),
+    #[cfg(feature = "regex")]
     #[error("Failed regex")]
     FailRegex,
 }
