@@ -2,7 +2,7 @@ mod parse_position;
 pub mod position;
 
 #[cfg(feature = "regex")]
-pub mod fallback;
+pub mod regex;
 
 use std::num::ParseIntError;
 
