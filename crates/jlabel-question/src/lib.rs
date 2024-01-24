@@ -2,6 +2,9 @@
 //!
 //! The main structure for parsing and matching is [`AllQuestion`].
 //! It can parse most patterns, but it cannot parse some of them.
+//! For details, please see [Condition for parsing as AllQuestion].
+//!
+//! [Condition for parsing as AllQuestion]: #condition-for-parsing-as-allquestion
 //!
 //! ```rust
 //! # use std::error::Error;
