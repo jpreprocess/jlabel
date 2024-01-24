@@ -67,6 +67,8 @@ pub struct Word {
 }
 
 /// `AccentPhrase` field of full-context label for current accent phrase (`F` field).
+///
+/// F4 is undefined.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhraseCurrent {
     /// F1: the number of moras in the current accent phrase
@@ -86,6 +88,8 @@ pub struct AccentPhraseCurrent {
 }
 
 /// `AccentPhrase` field of full-context label for previous or next accent phrase (`E` and `G` field).
+///
+/// E4/G4 is undefined.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhrasePrevNext {
     /// E1/G1: the number of moras in the accent phrase
