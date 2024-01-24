@@ -3,27 +3,44 @@
 /// The parser from str, and the serializer to String are both implemented.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Label {
+    /// Phoneme
     pub phoneme: Phoneme,
+    /// A: Mora
     pub mora: Option<Mora>,
+    /// B: Previous Word
     pub word_prev: Option<Word>,
+    /// C: Current Word
     pub word_curr: Option<Word>,
+    /// D: Next Word
     pub word_next: Option<Word>,
+    /// E: Previous Accent Phrase
     pub accent_phrase_prev: Option<AccentPhrasePrevNext>,
+    /// F: Current Accent Phrase
     pub accent_phrase_curr: Option<AccentPhraseCurrent>,
+    /// G: Next Accent Phrase
     pub accent_phrase_next: Option<AccentPhrasePrevNext>,
+    /// H: Previous Breath Group
     pub breath_group_prev: Option<BreathGroupPrevNext>,
+    /// I: Current Breath Group
     pub breath_group_curr: Option<BreathGroupCurrent>,
+    /// J: Next Breath Group
     pub breath_group_next: Option<BreathGroupPrevNext>,
+    /// K: Utterance
     pub utterance: Utterance,
 }
 
 /// `Phoneme` field of full-context label.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Phoneme {
+    /// the phoneme identity before the previous phoneme
     pub p2: Option<String>,
+    /// the previous phoneme identity
     pub p1: Option<String>,
+    /// the current phoneme identity
     pub c: Option<String>,
+    /// the next phoneme identity
     pub n1: Option<String>,
+    /// the phoneme after the next phoneme identity
     pub n2: Option<String>,
 }
 
