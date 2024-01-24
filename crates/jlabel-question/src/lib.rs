@@ -4,17 +4,17 @@
 //! - The patterns must be valid as htsvoice question pattern.
 //!   - Using `*` and `?` as wildcard, matches the entire full-context label.
 //!   - The pattern that cannot match full-context label in any situation (e.g. `*/A:-?????+*`) are not allowed.
-//! - All the patterns must be about the same position (e.g. the first element of Phoneme, the last element of field `J`, etc.).
+//!   - Minus sign (`-`) in numerical field can only be used in the first element of `A` (`A1`).
+//! - All the patterns must be about the same position
+//!   - e.g. The first pattern is about the first element of Phoneme, the second pattern is about the last element of field `J`, is *not* allowed.
 //! - Each pattern must *not* have conditions on two or more positions.
 //! - When the pattern is about position of numerical field (except for categorical field such as `B`, `C`, or `D`),
 //!   - The pattern must be continuous.
-//!   - The pattern must be arranged in ascending order.
-//!   - Minus sign (`-`) can only be used in the first element of `A`.
 //!
-//! Because this function cannot parse all of the valid htsvoice question patterns,
-//! we recommend falling back to string&wildcard matching in case of failed parsing.
+//! Because [`AllQuestion`] cannot parse all of the valid htsvoice question patterns,
+//! we recommend falling back to [`regex::RegexQuestion`] in case of failed parsing.
 
-mod parse_position;
+pub mod parse_position;
 pub mod position;
 
 #[cfg(feature = "regex")]
@@ -42,7 +42,7 @@ pub enum ParseError {
     #[error("Invalid position")]
     InvalidPosition(#[from] PositionError),
 
-    /// The provided pattern or range is empty, so jlabel-question cannot parse it.
+    /// The pattern or range is empty, so jlabel-question cannot parse it.
     #[error("Empty patterns or range")]
     Empty,
 
@@ -66,7 +66,7 @@ pub enum ParseError {
     InvalidBoolean(String),
 
     #[cfg(feature = "regex")]
-    /// Failed to build regex parser from the provided pattern.
+    /// Failed to build regex parser from the pattern.
     #[error("Failed regex")]
     FailRegex,
 }
@@ -81,6 +81,7 @@ macro_rules! match_position {
     };
 }
 
+/// Parses the question, and tests it aganinst given full-context label.
 pub trait QuestionMatcher
 where
     Self: Sized,
@@ -95,8 +96,6 @@ where
 }
 
 /// A main structure representing question.
-///
-/// This can be created from slice of strings using [`question`].
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AllQuestion {
     /// Question about phone fields of full-context label
