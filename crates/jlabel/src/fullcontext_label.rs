@@ -32,109 +32,109 @@ pub struct Label {
 /// `Phoneme` field of full-context label.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Phoneme {
-    /// the phoneme identity before the previous phoneme
+    /// P1: the phoneme identity before the previous phoneme
     pub p2: Option<String>,
-    /// the previous phoneme identity
+    /// P2: the previous phoneme identity
     pub p1: Option<String>,
-    /// the current phoneme identity
+    /// P3: the current phoneme identity
     pub c: Option<String>,
-    /// the next phoneme identity
+    /// P4: the next phoneme identity
     pub n1: Option<String>,
-    /// the phoneme after the next phoneme identity
+    /// P5: the phoneme after the next phoneme identity
     pub n2: Option<String>,
 }
 
 /// `Mora` field of full-context label (`A` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Mora {
-    /// the difference between accent type and position of the current mora identity
+    /// A1: the difference between accent type and position of the current mora identity
     pub relative_accent_position: i8,
-    /// position of the current mora identity in the current accent phrase (forward)
+    /// A2: position of the current mora identity in the current accent phrase (forward)
     pub position_forward: u8,
-    /// position of the current mora identity in the current accent phrase (backward)
+    /// A3: position of the current mora identity in the current accent phrase (backward)
     pub position_backward: u8,
 }
 
 /// `Word` field of full-context label (`B`, `C`, and `D` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Word {
-    /// pos (part-of-speech) of the word
+    /// B1/C1/D1: pos (part-of-speech) of the word
     pub pos: Option<u8>,
-    /// conjugation type of the word
+    /// B2/C2/D2: conjugation type of the word
     pub ctype: Option<u8>,
-    /// inflected forms of the word
+    /// B3/C3/D3: inflected forms of the word
     pub cform: Option<u8>,
 }
 
 /// `AccentPhrase` field of full-context label for current accent phrase (`F` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhraseCurrent {
-    /// the number of moras in the current accent phrase
+    /// F1: the number of moras in the current accent phrase
     pub mora_count: u8,
-    /// accent type in the current accent phrase
+    /// F2: accent type in the current accent phrase
     pub accent_position: u8,
-    /// whether the current accent phrase interrogative or not
+    /// F3: whether the current accent phrase interrogative or not
     pub is_interrogative: bool,
-    /// position of the current accent phrase identity in the current breath group by the accent phrase (forward)
+    /// F5: position of the current accent phrase identity in the current breath group by the accent phrase (forward)
     pub accent_phrase_position_forward: u8,
-    /// position of the current accent phrase identity in the current breath group by the accent phrase (backward)
+    /// F6: position of the current accent phrase identity in the current breath group by the accent phrase (backward)
     pub accent_phrase_position_backward: u8,
-    /// position of the current accent phrase identity in the current breath group by the mora (forward)
+    /// F7: position of the current accent phrase identity in the current breath group by the mora (forward)
     pub mora_position_forward: u8,
-    /// position of the current accent phrase identity in the current breath group by the mora (backward)
+    /// F8: position of the current accent phrase identity in the current breath group by the mora (backward)
     pub mora_position_backward: u8,
 }
 
 /// `AccentPhrase` field of full-context label for previous or next accent phrase (`E` and `G` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccentPhrasePrevNext {
-    /// the number of moras in the accent phrase
+    /// E1/G1: the number of moras in the accent phrase
     pub mora_count: u8,
-    /// accent type in the accent phrase
+    /// E2/G2: accent type in the accent phrase
     pub accent_position: u8,
-    /// whether the accent phrase interrogative or not
+    /// E3/G3: whether the accent phrase interrogative or not
     pub is_interrogative: bool,
-    /// whether pause insertion or not in between the accent phrase and the current accent phrase
+    /// E5/G5: whether pause insertion or not in between the accent phrase and the current accent phrase
     pub is_pause_insertion: Option<bool>,
 }
 
 /// `BreathGroup` field of full-context label for current breath group (`I` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreathGroupCurrent {
-    /// the number of accent phrases in the current breath group
+    /// I1: the number of accent phrases in the current breath group
     pub accent_phrase_count: u8,
-    /// the number of moras in the current breath group
+    /// I2: the number of moras in the current breath group
     pub mora_count: u8,
-    /// position of the current breath group identity by breath group (forward)
+    /// I3: position of the current breath group identity by breath group (forward)
     pub breath_group_position_forward: u8,
-    /// position of the current breath group identity by breath group (backward)
+    /// I4: position of the current breath group identity by breath group (backward)
     pub breath_group_position_backward: u8,
-    /// position of the current breath group identity by accent phrase (forward)
+    /// I5: position of the current breath group identity by accent phrase (forward)
     pub accent_phrase_position_forward: u8,
-    /// position of the current breath group identity by accent phrase (backward)
+    /// I6: position of the current breath group identity by accent phrase (backward)
     pub accent_phrase_position_backward: u8,
-    /// position of the current breath group identity by mora (forward)
+    /// I7: position of the current breath group identity by mora (forward)
     pub mora_position_forward: u8,
-    /// position of the current breath group identity by mora (backward)
+    /// I8: position of the current breath group identity by mora (backward)
     pub mora_position_backward: u8,
 }
 
 /// `BreathGroup` field of full-context label for previous or next breath group (`H` and `J` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BreathGroupPrevNext {
-    /// the number of accent phrases in the breath group
+    /// H1/J1: the number of accent phrases in the breath group
     pub accent_phrase_count: u8,
-    /// the number of moras in the breath group
+    /// H2/J2: the number of moras in the breath group
     pub mora_count: u8,
 }
 
 /// `Utterance` field of full-context label (`K` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Utterance {
-    /// the number of breath groups in this utterance
+    /// K1: the number of breath groups in this utterance
     pub breath_group_count: u8,
-    /// the number of accent phrases in this utterance
+    /// K2: the number of accent phrases in this utterance
     pub accent_phrase_count: u8,
-    /// the number of moras in this utterance
+    /// K3: the number of moras in this utterance
     pub mora_count: u8,
 }
