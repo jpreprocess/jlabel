@@ -66,10 +66,6 @@ macro_rules! match_position {
     };
 }
 
-pub fn question(patterns: &[&str]) -> Result<AllQuestion, ParseError> {
-    AllQuestion::parse(patterns)
-}
-
 pub trait QuestionMatcher
 where
     Self: Sized,

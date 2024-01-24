@@ -4,7 +4,7 @@ use std::{
     ops::Range,
 };
 
-use jlabel_question::{question, AllQuestion};
+use jlabel_question::{AllQuestion, QuestionMatcher};
 
 #[test]
 fn parse_all_questions() {
@@ -23,7 +23,7 @@ fn parse_all_questions() {
         let patterns = s.next().unwrap().trim();
 
         let split: Vec<_> = patterns[1..patterns.len() - 1].split(',').collect();
-        let question = question(&split).unwrap();
+        let question = AllQuestion::parse(&split).unwrap();
         match question {
             AllQuestion::SignedRange(r) => {
                 let range = parse_range_from_name_i8(name);
