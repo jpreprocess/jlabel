@@ -5,18 +5,6 @@ use jlabel::{
 };
 
 #[test]
-fn splitter() {
-    assert_eq!(split_pattern("a^*").unwrap(), ("", "a", "^*"));
-    assert_eq!(split_pattern("*/A:-??+*").unwrap(), ("*/A:", "-??", "+*"));
-    assert_eq!(split_pattern("*|?+*").unwrap(), ("*|", "?", "+*"));
-    assert_eq!(split_pattern("*-1").unwrap(), ("*-", "1", ""));
-
-    assert!(split_pattern("*").is_none());
-    assert!(split_pattern(":*").is_none());
-    assert!(split_pattern("*/A:*").is_none());
-}
-
-#[test]
 fn parse_question() {
     assert_eq!(
         AllQuestion::parse(&["a^*", "A^*"]).unwrap(),
@@ -79,12 +67,25 @@ fn parse_question() {
 #[test]
 fn parse_question_err() {
     use ParseError::*;
+    use PositionError::*;
 
     assert_eq!(AllQuestion::parse(&[]), Err(Empty));
-    assert_eq!(AllQuestion::parse(&["*/A:*"]), Err(FailSplitting));
-    assert_eq!(AllQuestion::parse(&["*/A:-??+*", "*/A:*"]), Err(FailSplitting));
-    assert_eq!(AllQuestion::parse(&["*/A:-??+*", "*/B:0+*"]), Err(PositionMismatch));
-    assert_eq!(AllQuestion::parse(&["*/A:0/B:*"]), Err(InvalidPosition));
+    assert_eq!(
+        AllQuestion::parse(&["*/A:*"]),
+        Err(InvalidPosition(EmptyRange))
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:-??+*", "*/A:*"]),
+        Err(InvalidPosition(EmptyRange))
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:-??+*", "*/B:0-*"]),
+        Err(PositionMismatch)
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*/A:0/B:*"]),
+        Err(InvalidPosition(SuffixVerifyError))
+    );
 }
 
 #[test]
@@ -123,9 +124,14 @@ fn query() {
         },
     };
 
+    assert!(AllQuestion::parse(&["b^*"]).unwrap().test(&label));
+    assert!(AllQuestion::parse(&["*^o-*"]).unwrap().test(&label));
+
     assert!(!AllQuestion::parse(&["*=i/A:*"]).unwrap().test(&label));
 
-    assert!(!AllQuestion::parse(&["*/A:-??+*", "*/A:-9+*"]).unwrap().test(&label));
+    assert!(!AllQuestion::parse(&["*/A:-??+*", "*/A:-9+*"])
+        .unwrap()
+        .test(&label));
     assert!(AllQuestion::parse(&["*/A:-6+*"]).unwrap().test(&label));
 
     assert!(AllQuestion::parse(&["*+8/B:*"]).unwrap().test(&label));

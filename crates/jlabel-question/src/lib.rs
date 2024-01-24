@@ -1,3 +1,4 @@
+mod parse_position;
 pub mod position;
 
 #[cfg(feature = "regex")]
@@ -6,20 +7,19 @@ pub mod fallback;
 use std::num::ParseIntError;
 
 use position::{
-    position, AllPosition, BooleanPosition, CategoryPosition, PhonePosition, Position,
-    SignedRangePosition, UndefinedPotision, UnsignedRangePosition,
+    AllPosition, BooleanPosition, CategoryPosition, PhonePosition, Position, SignedRangePosition,
+    UndefinedPotision, UnsignedRangePosition,
 };
 
 use jlabel::Label;
+use parse_position::{estimate_position, PositionError};
 
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
-    #[error("Failed splitting")]
-    FailSplitting,
     #[error("Position mismatch")]
     PositionMismatch,
     #[error("Invalid position")]
-    InvalidPosition,
+    InvalidPosition(#[from] PositionError),
     #[error("Empty patterns or range")]
     Empty,
     #[error("Incontinuous range")]
@@ -32,28 +32,6 @@ pub enum ParseError {
     InvalidBoolean(String),
     #[error("Failed regex")]
     FailRegex,
-}
-
-fn split_pattern(pattern: &str) -> Option<(&str, &str, &str)> {
-    let start = if pattern.starts_with("*/") {
-        4
-    } else if pattern.starts_with('*') {
-        2
-    } else {
-        0
-    };
-    let end = if pattern.ends_with(":*") {
-        pattern.len().checked_sub(4)?
-    } else if pattern.ends_with('*') {
-        pattern.len().checked_sub(2)?
-    } else {
-        pattern.len()
-    };
-    if start > end {
-        return None;
-    }
-
-    Some((&pattern[..start], &pattern[start..end], &pattern[end..]))
 }
 
 macro_rules! match_position {
@@ -86,24 +64,25 @@ pub enum AllQuestion {
 
 impl QuestionMatcher for AllQuestion {
     fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
-        let [first, rest @ ..] = patterns else {
-            return Err(ParseError::Empty);
-        };
-        let (prefix, range, suffix) = split_pattern(first).ok_or(ParseError::FailSplitting)?;
-
+        let mut position = None;
         let mut ranges = Vec::with_capacity(patterns.len());
-        ranges.push(range);
 
-        for pattern in rest {
-            let (pre, range, suf) = split_pattern(pattern).ok_or(ParseError::FailSplitting)?;
-            if pre != prefix || suf != suffix {
-                return Err(ParseError::PositionMismatch);
+        for pattern in patterns {
+            let (pos, range) = estimate_position(pattern)?;
+
+            if let Some(position) = position {
+                if pos != position {
+                    return Err(ParseError::PositionMismatch);
+                }
+            } else {
+                position = Some(pos);
             }
+
             ranges.push(range);
         }
 
         match_position!(
-            position(prefix, suffix).ok_or(ParseError::InvalidPosition)?,
+            position.ok_or(ParseError::Empty)?,
             &ranges,
             [
                 Phone,
