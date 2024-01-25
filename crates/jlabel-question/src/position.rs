@@ -1,16 +1,25 @@
+//! Structures for position
+
 use std::{fmt::Debug, ops::Range};
 
 use crate::Label;
 
 use super::ParseError;
 
+/// Enum that represent all positions
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AllPosition {
+    /// Phone fields
     Phone(PhonePosition),
+    /// Signed integer fields
     SignedRange(SignedRangePosition),
+    /// Unsigned integer fields
     UnsignedRange(UnsignedRangePosition),
+    /// Boolean fields
     Boolean(BooleanPosition),
+    /// Numerical categorical fields
     Category(CategoryPosition),
+    /// Undefined (always `xx`) fields
     Undefined(UndefinedPotision),
 }
 
@@ -26,16 +35,24 @@ macro_rules! as_ref_and_then {
     };
 }
 
+/// The trait that Position requires to implement
 pub trait Position {
+    /// The type of match target
     type Target;
+    /// The type of range
     type Range;
 
+    /// Parse range strings
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError>;
+    /// Get part of [`Label`] this position matches to.
     fn get<'a>(&self, label: &'a Label) -> Option<&'a Self::Target>;
+    /// Check if the range matches target
     fn test(&self, range: &Self::Range, target: &Self::Target) -> bool;
 }
 
+/// Positions of phone fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum PhonePosition {
     P1,
     P2,
@@ -67,7 +84,9 @@ impl Position for PhonePosition {
     }
 }
 
+/// Positions with signed integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum SignedRangePosition {
     A1,
 }
@@ -112,7 +131,9 @@ fn range_i8<S: AsRef<str>>(s: S) -> Result<Range<i8>, ParseError> {
     Ok(range)
 }
 
+/// Positions with unsigned integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum UnsignedRangePosition {
     A2,
     A3,
@@ -233,7 +254,9 @@ where
     merged.ok_or(ParseError::Empty)
 }
 
+/// Positions with boolean type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum BooleanPosition {
     E3,
     E5,
@@ -272,7 +295,9 @@ impl Position for BooleanPosition {
     }
 }
 
+/// Positions with numerical representations of categorical value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum CategoryPosition {
     B1,
     B2,
@@ -315,7 +340,9 @@ impl Position for CategoryPosition {
     }
 }
 
+/// Positions that are always `xx`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(missing_docs)]
 pub enum UndefinedPotision {
     E4,
     F4,

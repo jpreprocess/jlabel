@@ -1,9 +1,16 @@
 [package]
 name = "jlabel-question"
 edition = "2021"
+description = "HTS-style full-context label question parser and matcher"
+
+documentation = "https://docs.rs/jlabel-question"
 
 version.workspace = true
 rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+keywords.workspace = true
+categories.workspace = true
 
 [features]
 regex = ["dep:regex-automata", "dep:regex-syntax"]

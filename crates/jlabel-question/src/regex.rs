@@ -1,9 +1,16 @@
+//! Fallback using regular expression
+
 use jlabel::Label;
 use regex_automata::{meta::Regex, Anchored, Input};
 use regex_syntax::hir::{Dot, Hir, Repetition};
 
 use crate::{ParseError, QuestionMatcher};
 
+/// A fallback structure for parsing and checking of question.
+///
+/// Requires `regex` trait.
+///
+/// Please note that this is only for fallback of [`crate::AllQuestion`], and is not intended to be used independently.
 #[derive(Debug, Clone)]
 pub struct RegexQuestion(Regex);
 

@@ -1,3 +1,5 @@
+//! Estimate the position from pattern
+
 use crate::position::AllPosition;
 use crate::position::BooleanPosition::*;
 use crate::position::CategoryPosition::*;
@@ -7,23 +9,31 @@ use crate::position::UndefinedPotision::*;
 use crate::position::UnsignedRangePosition::*;
 use AllPosition::*;
 
+/// Errors from position parser.
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum PositionError {
+    /// Could not determine the position uniquely.
     #[error("No matching position found")]
     NoMatchingPosition,
+    /// The position is not `P1`, so it requires an asterisk as the first character of the pattern.
     #[error("The first character should be asterisk in this position")]
     MissingPrefixAsterisk,
+    /// The position is not `K3`, so it requires an asterisk as the last character of the pattern.
     #[error("The last character should be asterisk in this position")]
     MissingSuffixAsterisk,
+    /// The prefix (string before the range section) conflicts with the estimated position.
     #[error("Prefix has unknown sequence")]
     PrefixVerifyError,
+    /// The suffix (string after the range section) conflicts with the estimated position.
     #[error("Suffix has unknown sequence")]
     SuffixVerifyError,
+    /// Range section is empty. This pattern does not match any label.
     #[error("Range is empty")]
     EmptyRange,
 }
 
-pub fn estimate_position(pattern: &str) -> Result<(AllPosition, &str), PositionError> {
+/// Estimates the position the pattern is pointing at.
+pub(crate) fn estimate_position(pattern: &str) -> Result<(AllPosition, &str), PositionError> {
     let split = PositionSplit::new(pattern);
     let position = split.match_position()?;
     split.verify(position)?;
