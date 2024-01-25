@@ -22,7 +22,7 @@
 //!     "/J:5_29",
 //!     "/K:2+8-41"
 //! );
-//! let label = Label::from_str(label_str)?;
+//! let label: Label = label_str.parse()?;
 //!
 //! assert_eq!(
 //!     label.phoneme,

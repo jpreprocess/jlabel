@@ -30,7 +30,7 @@
 //!     "/J:5_29",
 //!     "/K:2+8-41"
 //! );
-//! assert!(question.test(&Label::from_str(label_str)?));
+//! assert!(question.test(&label_str.parse()?));
 //! #
 //! #     Ok(())
 //! # }
