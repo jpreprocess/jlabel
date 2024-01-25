@@ -13,3 +13,5 @@ categories = ["text-processing"]
 [workspace.dependencies]
 jlabel = { path = "crates/jlabel", version = "0.1.0" }
 jlabel-question = { path = "crates/jlabel-question", version = "0.1.0" }
+
+thiserror = "1.0.56"
