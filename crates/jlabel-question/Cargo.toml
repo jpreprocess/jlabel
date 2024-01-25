@@ -9,8 +9,8 @@ rust-version.workspace = true
 regex = ["dep:regex-automata", "dep:regex-syntax"]
 
 [dependencies]
-thiserror = "1.0.56"
 jlabel.workspace = true
+thiserror.workspace = true
 
 regex-automata = { version = "0.4.4", optional = true }
 regex-syntax = { version = "0.8.2", optional = true }

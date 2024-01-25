@@ -6,5 +6,4 @@ version.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-thiserror = "1.0.56"
-
+thiserror.workspace = true
