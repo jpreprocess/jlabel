@@ -12,5 +12,10 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+[features]
+serde = ["dep:serde"]
+
 [dependencies]
 thiserror.workspace = true
+
+serde = { version = "1", features = ["derive"], optional = true }

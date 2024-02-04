@@ -1,7 +1,11 @@
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// The structure representing a single line of HTS-style full-context label.
 ///
 /// The parser from str, and the serializer to String are both implemented.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Label {
     /// Phoneme
     pub phoneme: Phoneme,
@@ -31,6 +35,7 @@ pub struct Label {
 
 /// `Phoneme` field of full-context label.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Phoneme {
     /// P1: the phoneme identity before the previous phoneme
     pub p2: Option<String>,
@@ -46,6 +51,7 @@ pub struct Phoneme {
 
 /// `Mora` field of full-context label (`A` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Mora {
     /// A1: the difference between accent type and position of the current mora identity
     pub relative_accent_position: i8,
@@ -57,6 +63,7 @@ pub struct Mora {
 
 /// `Word` field of full-context label (`B`, `C`, and `D` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Word {
     /// B1/C1/D1: pos (part-of-speech) of the word
     pub pos: Option<u8>,
@@ -70,6 +77,7 @@ pub struct Word {
 ///
 /// F4 is undefined.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AccentPhraseCurrent {
     /// F1: the number of moras in the current accent phrase
     pub mora_count: u8,
@@ -91,6 +99,7 @@ pub struct AccentPhraseCurrent {
 ///
 /// E4/G4 is undefined.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct AccentPhrasePrevNext {
     /// E1/G1: the number of moras in the accent phrase
     pub mora_count: u8,
@@ -104,6 +113,7 @@ pub struct AccentPhrasePrevNext {
 
 /// `BreathGroup` field of full-context label for current breath group (`I` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BreathGroupCurrent {
     /// I1: the number of accent phrases in the current breath group
     pub accent_phrase_count: u8,
@@ -125,6 +135,7 @@ pub struct BreathGroupCurrent {
 
 /// `BreathGroup` field of full-context label for previous or next breath group (`H` and `J` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BreathGroupPrevNext {
     /// H1/J1: the number of accent phrases in the breath group
     pub accent_phrase_count: u8,
@@ -134,6 +145,7 @@ pub struct BreathGroupPrevNext {
 
 /// `Utterance` field of full-context label (`K` field).
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Utterance {
     /// K1: the number of breath groups in this utterance
     pub breath_group_count: u8,
