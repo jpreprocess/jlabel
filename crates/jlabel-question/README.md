@@ -8,7 +8,7 @@ Put the following in Cargo.toml
 
 ```toml
 [dependencies]
-jlabel-question = "0.1.0"
+jlabel-question = "0.1.1"
 ```
 
 ## Copyrights
