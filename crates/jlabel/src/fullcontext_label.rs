@@ -109,7 +109,7 @@ pub struct AccentPhrasePrevNext {
     pub is_interrogative: bool,
     /// E5/G5: whether pause insertion or not in between the accent phrase and the current accent phrase
     ///
-    /// *Caution:*
+    /// *Caution*
     ///
     /// The logic of this field is reversed from the E5/G5 of full-context label:
     /// "1" is false and "0" is true.
