@@ -3,8 +3,9 @@ use jlabel::{
     Mora, Phoneme, Utterance, Word,
 };
 
-pub fn fixtures() -> [(&'static str, Label); 11] {
+pub fn fixtures() -> [(&'static str, Label); 12] {
     [
+        // こんにちは
         (
             "xx^xx-sil+k=o/A:xx+xx+xx/B:xx-xx_xx/C:xx_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:xx_xx#xx_xx@xx_xx|xx_xx/G:5_5%0_xx_xx/H:xx_xx/I:xx-xx@xx+xx&xx-xx|xx+xx/J:1_5/K:1+1-5",
             Label {
@@ -543,5 +544,75 @@ pub fn fixtures() -> [(&'static str, Label); 11] {
                 },
             },
         ),
+        // 「なにを言っているのですか，それはスマホですよ．」
+        // (partial; 6th phoneme including the first sil)
+        (
+            "n^i-o+i=cl/A:2+3+1/B:04-xx_xx/C:13_xx+xx/D:20+1_1/E:xx_xx!xx_xx-xx/F:3_1#0_xx@1_4|1_12/G:3_3%0_xx_1/H:xx_xx/I:4-12@1+2&1-6|1+21/J:2_9/K:2+6-21",
+            Label {
+                phoneme: Phoneme {
+                    p2: Some("n".to_string()),
+                    p1: Some("i".to_string()),
+                    c: Some("o".to_string()),
+                    n1: Some("i".to_string()),
+                    n2: Some("cl".to_string()),
+                },
+                mora: Some(Mora {
+                    relative_accent_position: 2,
+                    position_forward: 3,
+                    position_backward: 1,
+                }),
+                word_prev: Some(Word {
+                    pos: Some(4),
+                    ctype: None,
+                    cform: None,
+                }),
+                word_curr: Some(Word {
+                    pos: Some(13),
+                    ctype: None,
+                    cform: None,
+                }),
+                word_next: Some(Word {
+                    pos: Some(20),
+                    ctype: Some(1),
+                    cform: Some(1),
+                }),
+                accent_phrase_prev: None,
+                accent_phrase_curr: Some(AccentPhraseCurrent {
+                    mora_count: 3,
+                    accent_position: 1,
+                    is_interrogative: false,
+                    accent_phrase_position_forward: 1,
+                    accent_phrase_position_backward: 4,
+                    mora_position_forward: 1,
+                    mora_position_backward: 12,
+                }),
+                accent_phrase_next: Some(AccentPhrasePrevNext {
+                    mora_count: 3,
+                    accent_position: 3,
+                    is_interrogative: false,
+                    is_pause_insertion: Some(false),
+                }),
+                breath_group_prev: None,
+                breath_group_curr: Some(BreathGroupCurrent {
+                    accent_phrase_count: 4,
+                    mora_count: 12,
+                    breath_group_position_forward: 1,
+                    breath_group_position_backward: 2,
+                    accent_phrase_position_forward: 1,
+                    accent_phrase_position_backward: 6,
+                    mora_position_forward: 1,
+                    mora_position_backward: 21,
+                }),
+                breath_group_next: Some(BreathGroupPrevNext {
+                    accent_phrase_count: 2,
+                    mora_count: 9,
+                }),
+                utterance: Utterance {
+                    breath_group_count: 2,
+                    accent_phrase_count: 6,
+                    mora_count: 21,
+                },
+            },
+        )
     ]
 }
