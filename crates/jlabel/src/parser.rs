@@ -174,7 +174,7 @@ impl<'a> LabelTokenizer<'a> {
                 mora_count: e1,
                 accent_position: e2,
                 is_interrogative: e3,
-                is_pause_insertion: e5,
+                is_pause_insertion: e5.map(|e5| !e5),
             }))
         } else {
             Ok(None)
@@ -222,7 +222,7 @@ impl<'a> LabelTokenizer<'a> {
                 mora_count: g1,
                 accent_position: g2,
                 is_interrogative: g3,
-                is_pause_insertion: g5,
+                is_pause_insertion: g5.map(|g5| !g5),
             }))
         } else {
             Ok(None)

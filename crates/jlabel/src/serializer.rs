@@ -152,7 +152,7 @@ impl<'a, 'b> Serializer<'a, 'b> {
             self.f.write_char('_')?;
             self.xx()?;
             self.f.write_char('-')?;
-            self.bool_or_xx(&accent_phrase_prev.is_pause_insertion)?;
+            self.bool_or_xx(&accent_phrase_prev.is_pause_insertion.map(|value| !value))?;
         } else {
             self.all_xx(&['_', '!', '_', '-'])?;
         }
@@ -204,7 +204,7 @@ impl<'a, 'b> Serializer<'a, 'b> {
             self.f.write_char('_')?;
             self.xx()?;
             self.f.write_char('_')?;
-            self.bool_or_xx(&accent_phrase_next.is_pause_insertion)?;
+            self.bool_or_xx(&accent_phrase_next.is_pause_insertion.map(|value| !value))?;
         } else {
             self.all_xx(&['_', '%', '_', '_'])?;
         }
