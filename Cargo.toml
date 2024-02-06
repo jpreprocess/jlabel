@@ -8,7 +8,7 @@ rust-version = "1.65.0"
 license = "BSD-3-Clause"
 repository = "https://github.com/jpreprocess/jlabel"
 keywords = ["tts", "openjtalk", "library"]
-categories = ["text-processing"]
+categories = ["encoding"]
 
 [workspace.package.metadata.docs.rs]
 all-features = true
