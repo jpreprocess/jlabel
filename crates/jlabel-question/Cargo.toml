@@ -12,6 +12,8 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
+metadata.workspace = true
+
 [features]
 regex = ["dep:regex-automata", "dep:regex-syntax"]
 

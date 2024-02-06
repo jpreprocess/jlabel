@@ -1,4 +1,6 @@
 #![deny(missing_docs)]
+#![cfg_attr(docsrs, feature(doc_cfg, doc_auto_cfg))]
+
 //! HTS-style full-context label question parser and matcher.
 //!
 //! The main structure for parsing and matching is [`AllQuestion`].
