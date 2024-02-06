@@ -35,6 +35,13 @@ impl<'a, 'b> Serializer<'a, 'b> {
         }
     }
 
+    fn d01_or_xx<T: Display>(&mut self, value: &Option<T>) -> Result {
+        match value {
+            Some(v) => write!(self.f, "{:01}", v),
+            None => self.xx(),
+        }
+    }
+
     fn d02_or_xx<T: Display>(&mut self, value: &Option<T>) -> Result {
         match value {
             Some(v) => write!(self.f, "{:02}", v),
@@ -95,9 +102,9 @@ impl<'a, 'b> Serializer<'a, 'b> {
         if let Some(word_prev) = word_prev {
             self.d02_or_xx(&word_prev.pos)?;
             self.f.write_char('-')?;
-            self.d02_or_xx(&word_prev.ctype)?;
+            self.d01_or_xx(&word_prev.ctype)?;
             self.f.write_char('_')?;
-            self.d02_or_xx(&word_prev.cform)?;
+            self.d01_or_xx(&word_prev.cform)?;
         } else {
             self.all_xx(&['-', '_'])?;
         }
@@ -112,9 +119,9 @@ impl<'a, 'b> Serializer<'a, 'b> {
         if let Some(word_curr) = word_curr {
             self.d02_or_xx(&word_curr.pos)?;
             self.f.write_char('_')?;
-            self.d02_or_xx(&word_curr.ctype)?;
+            self.d01_or_xx(&word_curr.ctype)?;
             self.f.write_char('+')?;
-            self.d02_or_xx(&word_curr.cform)?;
+            self.d01_or_xx(&word_curr.cform)?;
         } else {
             self.all_xx(&['_', '+'])?;
         }
@@ -129,9 +136,9 @@ impl<'a, 'b> Serializer<'a, 'b> {
         if let Some(word_next) = word_next {
             self.d02_or_xx(&word_next.pos)?;
             self.f.write_char('+')?;
-            self.d02_or_xx(&word_next.ctype)?;
+            self.d01_or_xx(&word_next.ctype)?;
             self.f.write_char('_')?;
-            self.d02_or_xx(&word_next.cform)?;
+            self.d01_or_xx(&word_next.cform)?;
         } else {
             self.all_xx(&['+', '_'])?;
         }
@@ -152,7 +159,7 @@ impl<'a, 'b> Serializer<'a, 'b> {
             self.f.write_char('_')?;
             self.xx()?;
             self.f.write_char('-')?;
-            self.bool_or_xx(&accent_phrase_prev.is_pause_insertion)?;
+            self.bool_or_xx(&accent_phrase_prev.is_pause_insertion.map(|value| !value))?;
         } else {
             self.all_xx(&['_', '!', '_', '-'])?;
         }
@@ -204,7 +211,7 @@ impl<'a, 'b> Serializer<'a, 'b> {
             self.f.write_char('_')?;
             self.xx()?;
             self.f.write_char('_')?;
-            self.bool_or_xx(&accent_phrase_next.is_pause_insertion)?;
+            self.bool_or_xx(&accent_phrase_next.is_pause_insertion.map(|value| !value))?;
         } else {
             self.all_xx(&['_', '%', '_', '_'])?;
         }
