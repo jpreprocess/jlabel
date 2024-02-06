@@ -8,7 +8,7 @@ Put the following in Cargo.toml
 
 ```toml
 [dependencies]
-jlabel = "0.1.1"
+jlabel = "0.1.2"
 ```
 
 ## License
