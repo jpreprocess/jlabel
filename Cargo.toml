@@ -10,7 +10,7 @@ repository = "https://github.com/jpreprocess/jlabel"
 keywords = ["tts", "openjtalk", "library"]
 categories = ["encoding"]
 
-[workspace.package.metadata.docs.rs]
+[workspace.metadata.docs.rs]
 all-features = true
 rustdoc-args = ["--cfg", "docsrs"]
 
