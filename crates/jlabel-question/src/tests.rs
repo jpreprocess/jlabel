@@ -1,7 +1,7 @@
 use super::*;
 use jlabel::{
-    AccentPhraseCurrent, AccentPhrasePrevNext, BreathGroupCurrent, BreathGroupPrevNext, Label,
-    Mora, Phoneme, Utterance, Word,
+    AccentPhraseCurrent, AccentPhrasePrevNext, BreathGroupCurrent, BreathGroupPrevNext, Mora,
+    Phoneme, Utterance, Word,
 };
 
 #[test]

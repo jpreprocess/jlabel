@@ -273,9 +273,11 @@ impl Position for BooleanPosition {
 
     fn range(&self, ranges: &[&str]) -> Result<Self::Range, ParseError> {
         let first = ranges.first().ok_or(ParseError::Empty)?;
+        // E5/G5's logics are inverted
+        let field_false = matches!(self, Self::E5 | Self::G5);
         match *first {
-            "0" => Ok(false),
-            "1" => Ok(true),
+            "0" => Ok(field_false),
+            "1" => Ok(!field_false),
             _ => Err(ParseError::InvalidBoolean(first.to_string())),
         }
     }
