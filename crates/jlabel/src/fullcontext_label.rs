@@ -111,7 +111,7 @@ pub struct AccentPhrasePrevNext {
     ///
     /// <div class="warning">
     ///
-    /// The logic of this field is reversed from the E5/G5 of full-context label:
+    /// The logic of this field is inverted from the E5/G5 of full-context label:
     /// "1" is false and "0" is true.
     ///
     /// </div>
