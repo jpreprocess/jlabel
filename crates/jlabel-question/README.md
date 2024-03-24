@@ -2,6 +2,8 @@
 
 Parser and matcher of htsvoice full-context-label questions.
 
+**Note: serde support is experimental. It may change in a minor release.**
+
 ## Usage
 
 Put the following in Cargo.toml
