@@ -6,6 +6,9 @@ use crate::Label;
 
 use super::ParseError;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Enum that represent all positions
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AllPosition {
@@ -52,6 +55,7 @@ pub trait Position {
 
 /// Positions of phone fields
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum PhonePosition {
     P1,
@@ -86,6 +90,7 @@ impl Position for PhonePosition {
 
 /// Positions with signed integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum SignedRangePosition {
     A1,
@@ -133,6 +138,7 @@ fn range_i8<S: AsRef<str>>(s: S) -> Result<Range<i8>, ParseError> {
 
 /// Positions with unsigned integer type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum UnsignedRangePosition {
     A2,
@@ -256,6 +262,7 @@ where
 
 /// Positions with boolean type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum BooleanPosition {
     E3,
@@ -299,6 +306,7 @@ impl Position for BooleanPosition {
 
 /// Positions with numerical representations of categorical value
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum CategoryPosition {
     B1,
@@ -344,6 +352,7 @@ impl Position for CategoryPosition {
 
 /// Positions that are always `xx`
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[allow(missing_docs)]
 pub enum UndefinedPotision {
     E4,

@@ -16,6 +16,7 @@ metadata.workspace = true
 
 [features]
 regex = ["dep:regex-automata", "dep:regex-syntax"]
+serde = ["dep:serde"]
 
 [dependencies]
 jlabel.workspace = true
@@ -23,3 +24,4 @@ thiserror.workspace = true
 
 regex-automata = { version = "0.4.4", optional = true }
 regex-syntax = { version = "0.8.2", optional = true }
+serde = { version = "1", features = ["derive"], optional = true }
