@@ -12,7 +12,9 @@ repository.workspace = true
 keywords.workspace = true
 categories.workspace = true
 
-metadata.workspace = true
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 regex = ["dep:regex-automata", "dep:regex-syntax"]
