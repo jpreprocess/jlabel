@@ -2,7 +2,7 @@
 
 Parser and matcher of htsvoice full-context-label questions.
 
-**Note: serde support is experimental. It may change in a minor release.**
+**Note: `serde` support is experimental. Changes may not be treated as breaking.**
 
 ## Usage
 
