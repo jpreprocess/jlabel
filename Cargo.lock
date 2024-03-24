@@ -26,6 +26,7 @@ dependencies = [
  "jlabel",
  "regex-automata",
  "regex-syntax",
+ "serde",
  "thiserror",
 ]
 

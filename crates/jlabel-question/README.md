@@ -2,6 +2,8 @@
 
 Parser and matcher of htsvoice full-context-label questions.
 
+**Note: `serde` support is experimental. Changes may not be treated as breaking.**
+
 ## Usage
 
 Put the following in Cargo.toml

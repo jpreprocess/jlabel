@@ -106,6 +106,9 @@ use position::{
 use jlabel::Label;
 use parse_position::{estimate_position, PositionError};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Errors from jlabel-question.
 #[derive(Debug, Clone, thiserror::Error, PartialEq, Eq)]
 pub enum ParseError {
@@ -173,6 +176,7 @@ where
 
 /// A main structure representing question.
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum AllQuestion {
     /// Question about phone fields of full-context label
     Phone(Question<PhonePosition>),
@@ -236,10 +240,18 @@ impl QuestionMatcher for AllQuestion {
 ///
 /// Used in variants of [`AllQuestion`]
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Question<P: Position> {
     /// The position this question matches to.
     pub position: P,
     /// The parsed range
+    #[cfg_attr(
+        feature = "serde",
+        serde(bound(
+            serialize = "P::Range: Serialize",
+            deserialize = "P::Range: Deserialize<'de>"
+        ))
+    )]
     pub range: Option<P::Range>,
 }
 
