@@ -36,7 +36,7 @@ impl RegexQuestion {
 }
 
 impl QuestionMatcher for RegexQuestion {
-    fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
+    fn parse<S: AsRef<str>>(patterns: &[S]) -> Result<Self, ParseError> {
         let regex = Regex::builder()
             .build_from_hir(&Hir::alternation(
                 patterns.iter().map(Self::parse_wildcard).collect(),

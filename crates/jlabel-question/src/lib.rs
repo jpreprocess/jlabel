@@ -166,7 +166,7 @@ where
     Self: Sized,
 {
     /// Parses question patterns in string, and if succeeds, returns the parsed question.
-    fn parse(patterns: &[&str]) -> Result<Self, ParseError>;
+    fn parse<S: AsRef<str>>(patterns: &[S]) -> Result<Self, ParseError>;
 
     /// Checks if the full-context label matches the question.
     ///
@@ -193,12 +193,12 @@ pub enum AllQuestion {
 }
 
 impl QuestionMatcher for AllQuestion {
-    fn parse(patterns: &[&str]) -> Result<Self, ParseError> {
+    fn parse<S: AsRef<str>>(patterns: &[S]) -> Result<Self, ParseError> {
         let mut position = None;
         let mut ranges = Vec::with_capacity(patterns.len());
 
         for pattern in patterns {
-            let (pos, range) = estimate_position(pattern)?;
+            let (pos, range) = estimate_position(pattern.as_ref())?;
 
             if let Some(position) = position {
                 if pos != position {
