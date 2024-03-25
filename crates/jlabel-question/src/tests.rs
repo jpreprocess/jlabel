@@ -69,7 +69,7 @@ fn parse_question_err() {
     use ParseError::*;
     use PositionError::*;
 
-    assert_eq!(AllQuestion::parse(&[]), Err(Empty));
+    assert_eq!(AllQuestion::parse::<&str>(&[]), Err(Empty));
     assert_eq!(
         AllQuestion::parse(&["*/A:*"]),
         Err(InvalidPosition(EmptyRange))
