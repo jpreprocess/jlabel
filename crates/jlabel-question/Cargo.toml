@@ -24,6 +24,6 @@ serde = ["dep:serde"]
 jlabel.workspace = true
 thiserror.workspace = true
 
-regex-automata = { version = "0.4.4", optional = true }
-regex-syntax = { version = "0.8.2", optional = true }
+regex-automata = { version = "0.4", optional = true }
+regex-syntax = { version = "0.8", optional = true }
 serde = { version = "1", features = ["derive"], optional = true }
