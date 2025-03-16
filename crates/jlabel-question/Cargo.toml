@@ -1,10 +1,10 @@
 [package]
 name = "jlabel-question"
-edition = "2021"
 description = "HTS-style full-context label question parser and matcher"
 
 documentation = "https://docs.rs/jlabel-question"
 
+edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
 license.workspace = true

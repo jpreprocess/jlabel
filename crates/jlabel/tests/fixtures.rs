@@ -26,7 +26,7 @@ pub fn fixtures() -> [(&'static str, Label); 12] {
                     mora_count: 5,
                     accent_position: 5,
                     is_interrogative: false,
-                    is_pause_insertion: None
+                    is_pause_insertion: None,
                 }),
                 breath_group_prev: None,
                 breath_group_curr: None,
@@ -613,6 +613,6 @@ pub fn fixtures() -> [(&'static str, Label); 12] {
                     mora_count: 21,
                 },
             },
-        )
+        ),
     ]
 }
