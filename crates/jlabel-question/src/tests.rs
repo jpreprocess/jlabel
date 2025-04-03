@@ -129,9 +129,11 @@ fn query() {
 
     assert!(!AllQuestion::parse(&["*=i/A:*"]).unwrap().test(&label));
 
-    assert!(!AllQuestion::parse(&["*/A:-??+*", "*/A:-9+*"])
-        .unwrap()
-        .test(&label));
+    assert!(
+        !AllQuestion::parse(&["*/A:-??+*", "*/A:-9+*"])
+            .unwrap()
+            .test(&label)
+    );
     assert!(AllQuestion::parse(&["*/A:-6+*"]).unwrap().test(&label));
 
     assert!(AllQuestion::parse(&["*+8/B:*"]).unwrap().test(&label));

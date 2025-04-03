@@ -1,7 +1,7 @@
 //! Fallback using regular expression
 
 use jlabel::Label;
-use regex_automata::{meta::Regex, Anchored, Input};
+use regex_automata::{Anchored, Input, meta::Regex};
 use regex_syntax::hir::{Dot, Hir, Repetition};
 
 use crate::{ParseError, QuestionMatcher};
@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     fn regex() {
-        const TEST_LABEL:&str="sil^k-o+N=n/A:-4+1+5/B:xx-xx_xx/C:09_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:5_5#0_xx@1_1|1_5/G:xx_xx%xx_xx_xx/H:xx_xx/I:1-5@1+1&1-1|1+5/J:xx_xx/K:1+1-5";
+        const TEST_LABEL: &str = "sil^k-o+N=n/A:-4+1+5/B:xx-xx_xx/C:09_xx+xx/D:xx+xx_xx/E:xx_xx!xx_xx-xx/F:5_5#0_xx@1_1|1_5/G:xx_xx%xx_xx_xx/H:xx_xx/I:1-5@1+1&1-1|1+5/J:xx_xx/K:1+1-5";
 
         use crate::QuestionMatcher;
         use jlabel::Label;

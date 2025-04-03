@@ -104,7 +104,7 @@ use position::{
 };
 
 use jlabel::Label;
-use parse_position::{estimate_position, PositionError};
+use parse_position::{PositionError, estimate_position};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
