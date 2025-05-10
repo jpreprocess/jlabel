@@ -1,9 +1,7 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - v*.*.*
+  workflow_call:
 
 jobs:
   pre-publish-test:
@@ -51,26 +49,3 @@ jobs:
           publish_package "jlabel"
           sleep 5
           publish_package "jlabel-question"
-
-  create-release:
-    name: Create Release
-    permissions:
-      contents: write
-    needs: [publish-crates]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check Tag
-        id: check-tag
-        run: |
-          if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Not prerelease"
-            echo "prerelease=false" >> $GITHUB_OUTPUT
-          else
-            echo "Prerelease"
-            echo "prerelease=true" >> $GITHUB_OUTPUT
-          fi
-      - name: Create release
-        uses: "marvinpinto/action-automatic-releases@latest"
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: ${{ steps.check-tag.outputs.prerelease == 'true' }}
