@@ -2,7 +2,7 @@
 name = "jlabel"
 description = "HTS-style full-context label structure and parser/serializer from/to string"
 
-documentation = "https://docs.rs/jlabel-question"
+documentation = "https://docs.rs/jlabel"
 
 edition.workspace = true
 version.workspace = true
