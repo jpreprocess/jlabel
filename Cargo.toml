@@ -4,7 +4,6 @@ members = ["crates/*"]
 
 [workspace.package]
 edition = "2024"
-version = "0.1.4"
 rust-version = "1.85.0"
 license = "BSD-3-Clause"
 repository = "https://github.com/jpreprocess/jlabel"
@@ -12,7 +11,4 @@ keywords = ["tts", "openjtalk", "library"]
 categories = ["encoding"]
 
 [workspace.dependencies]
-jlabel = { path = "crates/jlabel", version = "0.1.4" }
-jlabel-question = { path = "crates/jlabel-question", version = "0.1.4" }
-
 thiserror = "2"
