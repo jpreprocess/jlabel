@@ -8,10 +8,14 @@ Parser and matcher of htsvoice full-context-label questions.
 
 Put the following in Cargo.toml
 
+<!-- x-release-please-start-version -->
+
 ```toml
 [dependencies]
 jlabel-question = "0.1.4"
 ```
+
+<!-- x-release-please-end -->
 
 ## Copyrights
 
