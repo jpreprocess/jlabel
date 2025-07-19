@@ -3,9 +3,9 @@ name = "jlabel"
 description = "HTS-style full-context label structure and parser/serializer from/to string"
 
 documentation = "https://docs.rs/jlabel"
+version = "0.1.4"
 
 edition.workspace = true
-version.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
