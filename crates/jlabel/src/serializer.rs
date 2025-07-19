@@ -37,14 +37,14 @@ impl<'a, 'b> Serializer<'a, 'b> {
 
     fn d01_or_xx<T: Display>(&mut self, value: &Option<T>) -> Result {
         match value {
-            Some(v) => write!(self.f, "{:01}", v),
+            Some(v) => write!(self.f, "{v:01}"),
             None => self.xx(),
         }
     }
 
     fn d02_or_xx<T: Display>(&mut self, value: &Option<T>) -> Result {
         match value {
-            Some(v) => write!(self.f, "{:02}", v),
+            Some(v) => write!(self.f, "{v:02}"),
             None => self.xx(),
         }
     }
