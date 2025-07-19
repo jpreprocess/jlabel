@@ -3,7 +3,7 @@ name = "jlabel-question"
 description = "HTS-style full-context label question parser and matcher"
 
 documentation = "https://docs.rs/jlabel-question"
-version = "0.1.4"
+version = "0.1.5"
 
 edition.workspace = true
 rust-version.workspace = true
@@ -21,7 +21,7 @@ regex = ["dep:regex-automata", "dep:regex-syntax"]
 serde = ["dep:serde"]
 
 [dependencies]
-jlabel = { path = "../jlabel", version = "0.1.4" }
+jlabel = { path = "../jlabel", version = "0.1.5" }
 thiserror.workspace = true
 
 regex-automata = { version = "0.4", optional = true }
