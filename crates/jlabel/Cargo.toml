@@ -18,8 +18,11 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [features]
 serde = ["dep:serde"]
+napi = ["dep:napi", "dep:napi-derive"]
 
 [dependencies]
 thiserror.workspace = true
 
 serde = { version = "1", features = ["derive"], optional = true }
+napi = { version = "2", optional = true }
+napi-derive = { version = "2", optional = true }
