@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "jlabel"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "serde",
  "thiserror",
@@ -21,7 +21,7 @@ dependencies = [
 
 [[package]]
 name = "jlabel-question"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "jlabel",
  "regex-automata",
