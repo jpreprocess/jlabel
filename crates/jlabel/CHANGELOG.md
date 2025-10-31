@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/jpreprocess/jlabel/compare/jlabel-v0.1.5...jlabel-v0.1.6) (2025-10-31)
+
+
+### Miscellaneous Chores
+
+* trigger version bump ([df7733b](https://github.com/jpreprocess/jlabel/commit/df7733b46916f73d6472c049e1f37d6737000253))
+
 ## [0.1.5](https://github.com/jpreprocess/jlabel/compare/jlabel-v0.1.4...jlabel-v0.1.5) (2025-10-13)
 
 
