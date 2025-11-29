@@ -12,7 +12,7 @@ jobs:
     permissions: {}
     runs-on: ubuntu-latest
     outputs:
-      release_created: ${{ steps.release-please.outputs.release_created }}
+      releases_created: ${{ steps.release-please.outputs.releases_created }}
     steps:
       - name: Generate a token
         id: generate_token
