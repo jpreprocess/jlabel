@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/jpreprocess/jlabel/compare/jlabel-v0.1.6...jlabel-v0.1.7) (2025-12-27)
+
+
+### Miscellaneous Chores
+
+* trigger release 0.1.7 ([0201719](https://github.com/jpreprocess/jlabel/commit/02017191a3528410cc3bd936bfc7b8bb75be3ab5))
+
 ## [0.1.6](https://github.com/jpreprocess/jlabel/compare/jlabel-v0.1.5...jlabel-v0.1.6) (2025-10-31)
 
 
