@@ -34,7 +34,7 @@ jobs:
 
   publish:
     needs: release-please
-    if: ${{ needs.release-please.outputs.releases_created }}
+    if: ${{ fromJSON(needs.release-please.outputs.releases_created) }}
     permissions:
       contents: read
       id-token: write
