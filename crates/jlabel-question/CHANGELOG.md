@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.9](https://github.com/jpreprocess/jlabel/compare/jlabel-question-v0.1.8...jlabel-question-v0.1.9) (2026-05-29)
+
+
+### Miscellaneous Chores
+
+* trigger release 0.1.9 ([79c4155](https://github.com/jpreprocess/jlabel/commit/79c4155f2d0fa7a92baf20785595fdadeea969cc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * jlabel bumped from 0.1.8 to 0.1.9
+
 ## [0.1.8](https://github.com/jpreprocess/jlabel/compare/jlabel-question-v0.1.7...jlabel-question-v0.1.8) (2026-05-28)
 
 
