@@ -12,7 +12,7 @@ Put the following in Cargo.toml
 
 ```toml
 [dependencies]
-jlabel-question = "0.1.8"
+jlabel-question = "0.1.9"
 ```
 
 <!-- x-release-please-end -->
