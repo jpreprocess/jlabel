@@ -27,7 +27,7 @@ pub enum PositionError {
     /// The suffix (string after the range section) conflicts with the estimated position.
     #[error("Suffix has unknown sequence")]
     SuffixVerifyError,
-    /// An asterisk was found in the range section. This implies the pattern matches across multiple fields.
+    /// Asterisk(s) was/were found in the range section. This implies the pattern matches across multiple fields.
     #[error("Asterisk is not allowed in range section")]
     AsteriskInRange,
     /// Range section is empty. This pattern does not match any label.
