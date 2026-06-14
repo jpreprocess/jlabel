@@ -86,6 +86,14 @@ fn parse_question_err() {
         AllQuestion::parse(&["*/A:0/B:*"]),
         Err(InvalidPosition(SuffixVerifyError))
     );
+    assert_eq!(
+        AllQuestion::parse(&["*^k-o+*"]),
+        Err(InvalidPosition(SuffixVerifyError))
+    );
+    assert_eq!(
+        AllQuestion::parse(&["*-N+*+1+*"]),
+        Err(InvalidPosition(AsteriskInRange))
+    );
 }
 
 #[test]

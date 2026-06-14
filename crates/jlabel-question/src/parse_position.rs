@@ -27,6 +27,9 @@ pub enum PositionError {
     /// The suffix (string after the range section) conflicts with the estimated position.
     #[error("Suffix has unknown sequence")]
     SuffixVerifyError,
+    /// An asterisk(s) was found in the range section. This implies the pattern matches across multiple fields.
+    #[error("Asterisk is not allowed in range section")]
+    AsteriskInRange,
     /// Range section is empty. This pattern does not match any label.
     #[error("Range is empty")]
     EmptyRange,
@@ -152,6 +155,9 @@ impl<'a> PositionSplit<'a> {
     pub fn into_range(self) -> Result<&'a str, PositionError> {
         if self.range.is_empty() {
             return Err(PositionError::EmptyRange);
+        }
+        if self.range.contains('*') {
+            return Err(PositionError::AsteriskInRange);
         }
         Ok(self.range)
     }
@@ -351,6 +357,11 @@ mod tests {
         assert_eq!(
             estimate_position("*/B:0+*"),
             Err(PositionError::SuffixVerifyError)
+        );
+
+        assert_eq!(
+            estimate_position("*/A:0+*/B:+*"),
+            Err(PositionError::AsteriskInRange)
         );
 
         assert_eq!(
