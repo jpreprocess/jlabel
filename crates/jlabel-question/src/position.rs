@@ -125,8 +125,11 @@ fn range_i8<S: AsRef<str>>(s: S) -> Result<Range<i8>, ParseError> {
             let d = s[..s.len() - 1]
                 .parse::<i8>()
                 .map_err(ParseError::FailWildcard)?;
-            debug_assert!(d >= 0);
-            d * 10..(d + 1) * 10
+            if d >= 0 {
+                d * 10..(d + 1) * 10
+            } else {
+                (d - 1) * 10 + 1..d * 10 + 1
+            }
         }
         s => {
             let d = s.parse::<i8>().map_err(ParseError::FailLiteral)?;
@@ -391,7 +394,7 @@ mod tests {
         assert_eq!(range_i8("-?"), Ok(-9..0));
         assert_eq!(range_i8("-??"), Ok(-99..-9));
 
-        // assert_eq!(range_i8("-1?"), Ok(-19..-9));
+        assert_eq!(range_i8("-1?"), Ok(-19..-9));
     }
 
     #[test]

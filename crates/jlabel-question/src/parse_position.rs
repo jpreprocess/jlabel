@@ -333,6 +333,7 @@ mod tests {
         assert_eq!(estimate_position("*_xx-*"), Ok((Undefined(E4), "xx")));
         assert_eq!(estimate_position("*_xx@*"), Ok((Undefined(F4), "xx")));
         assert_eq!(estimate_position("*_xx_*"), Ok((Undefined(G4), "xx")));
+        assert_eq!(estimate_position("*/A:-1?+*"), Ok((SignedRange(A1), "-1?")));
     }
 
     #[test]
