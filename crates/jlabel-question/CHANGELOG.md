@@ -6,6 +6,7 @@
 ### Bug Fixes
 
 * Add AsteriskInRange error ([#97](https://github.com/jpreprocess/jlabel/issues/97)) ([0c5f867](https://github.com/jpreprocess/jlabel/commit/0c5f8678ae9521f005c3a8bd101b5aac6a8facb7))
+* parse negative position ([#99](https://github.com/jpreprocess/jlabel/issues/99)) ([e6522ab](https://github.com/jpreprocess/jlabel/commit/e6522ab9342f9b6a520db13c23b7fe61467652cf))
 
 
 ### Dependencies
