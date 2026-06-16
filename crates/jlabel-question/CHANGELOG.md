@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.1.10](https://github.com/jpreprocess/jlabel/compare/jlabel-question-v0.1.9...jlabel-question-v0.1.10) (2026-06-16)
+
+
+### Bug Fixes
+
+* Add AsteriskInRange error ([#97](https://github.com/jpreprocess/jlabel/issues/97)) ([0c5f867](https://github.com/jpreprocess/jlabel/commit/0c5f8678ae9521f005c3a8bd101b5aac6a8facb7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * jlabel bumped from 0.1.9 to 0.1.10
+
 ## [0.1.9](https://github.com/jpreprocess/jlabel/compare/jlabel-question-v0.1.8...jlabel-question-v0.1.9) (2026-05-29)
 
 
