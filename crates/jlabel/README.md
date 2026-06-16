@@ -10,7 +10,7 @@ Put the following in Cargo.toml
 
 ```toml
 [dependencies]
-jlabel = "0.1.9"
+jlabel = "0.1.10"
 ```
 
 <!-- x-release-please-end -->
